@@ -16,7 +16,7 @@ class Dates {
         return String.format("%04d-%02d-%02d", year, month, day)
     }
 
-    fun getCoolTodaysDate(): String{
+    fun getTodaysCoolDate(): String{
         val locale = Locale("it", "IT") // Italian locale
         val dateFormat = SimpleDateFormat("EEEE, d MMMM yyyy", locale)
         return dateFormat.format(Date())

@@ -16,16 +16,12 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import pack.pack.ui.theme.DailyTheme
@@ -36,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.compose.NavHost
 
 
@@ -68,14 +65,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
-
     }
 }
 
 @Composable
 fun HomeScreen(appCont: Context) {
-    AddTaskButton()
     val defMod = Modifier.fillMaxWidth().padding(8.dp)
     Column(
         modifier = defMod
@@ -84,7 +78,13 @@ fun HomeScreen(appCont: Context) {
             modifier = defMod,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = Dates().getCoolTodaysDate() + "\n\n TODO LIST")
+            Text(
+                text = Dates().getTodaysCoolDate() + "\n\n TODO LIST",
+                style = TextStyle(fontSize = 24.sp),
+                textAlign = TextAlign.Center, // Center the text horizontally
+                modifier = Modifier.fillMaxWidth() // Expand the width to the full available width
+            )
+
         }
         Row(
             modifier = defMod,
