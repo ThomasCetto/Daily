@@ -146,7 +146,7 @@ fun CheckBoxList(appCont: Context){
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        val rows: ArrayList<String> = dbHelper.getTodaysTaskNames(appCont)
+        val rows: ArrayList<String> = dbHelper.getTodaysTaskNames()
         for (row in rows) {
             var isChecked by remember {
                 mutableStateOf(false)

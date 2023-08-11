@@ -9,8 +9,6 @@ import android.util.Log
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
-import java.time.LocalDate
-import java.util.Calendar
 
 class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
@@ -53,7 +51,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         // Handle database schema upgrades if needed
     }
 
-    fun readQueriesFromFile(context: Context, resourceId: Int): List<String> {
+    private fun readQueriesFromFile(context: Context, resourceId: Int): List<String> {
         val queries = mutableListOf<String>()
         try {
             val inputStream = context.resources.openRawResource(resourceId)
@@ -76,20 +74,20 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         return queries
     }
 
-    fun getAllRows(tableName: String): Cursor {
+    private fun getAllRows(): Cursor {
         val db = readableDatabase
-        return db.query(tableName, null, null, null, null, null, null)
+        return db.query("task", null, null, null, null, null, null)
     }
 
     private fun log(msg: String){
         Log.d("MainActivity", msg)
     }
 
-    fun getRowStrings(appCont: Context, tableName: String): ArrayList<String>{
+    private fun getRowStrings(): ArrayList<String>{
         val rows = ArrayList<String>()
 
         try {
-            val cursor = getAllRows(tableName)
+            val cursor = getAllRows()
             val columnNames = cursor.columnNames  // Get column names dynamically
 
             while (cursor.moveToNext()) {
@@ -100,13 +98,13 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
                 rows.add(rowInfo)
             }
         } catch (e: Exception) {
-            log("Errore nell'ottenere le righe " + e.message.toString())
+            log("Error in obtaining the rows " + e.message.toString())
         }
         return rows
     }
 
-    fun getTaskNames(appCont: Context): ArrayList<String>{
-        val strings: ArrayList<String> = getRowStrings(appCont, "task")
+    fun getTaskNames(): ArrayList<String>{
+        val strings: ArrayList<String> = getRowStrings()
         val outList = ArrayList<String>()
         for (string in strings){
             outList.add(string.split("name: ")[1].split(", day: ")[0])
@@ -114,7 +112,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         return outList
     }
 
-    fun getAllRowsForToday(): Cursor {
+    private fun getAllRowsForToday(): Cursor {
         val today = Dates().getTodaysDate()
 
         val db = readableDatabase
@@ -122,7 +120,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
     }
 
 
-    fun getTodaysTaskNames(appCont: Context): ArrayList<String>{
+    fun getTodaysTaskNames(): ArrayList<String>{
         val cursor: Cursor = getAllRowsForToday()
         val out = ArrayList<String>()
         val nameIndex = cursor.getColumnIndex("name")
