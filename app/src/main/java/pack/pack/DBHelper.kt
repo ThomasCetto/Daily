@@ -137,6 +137,19 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         return out
     }
 
+    fun deleteDB(appCont: Context){
+        close()
+
+        // Delete the database file
+        val dbFile = appCont.getDatabasePath("daily.db")
+        if (dbFile.exists()) {
+            dbFile.delete()
+            log("Database deleted")
+        } else {
+            log("Database file not found, and not deleted")
+        }
+    }
+
 
 
 

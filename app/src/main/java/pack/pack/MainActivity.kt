@@ -11,7 +11,6 @@ import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,6 +27,7 @@ import pack.pack.ui.theme.DailyTheme
 import androidx.navigation.compose.composable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -43,9 +43,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         log("APP STARTED")
 
-        deleteDB(applicationContext)
-        val dbHelper = DBHelper(applicationContext)
-        val db = dbHelper.writableDatabase
+        // deletes and it will re-create
+        DBHelper(applicationContext).deleteDB(applicationContext)
 
         setContent {
             DailyTheme {
@@ -84,7 +83,6 @@ fun HomeScreen(appCont: Context) {
                 textAlign = TextAlign.Center, // Center the text horizontally
                 modifier = Modifier.fillMaxWidth() // Expand the width to the full available width
             )
-
         }
         Row(
             modifier = defMod,
@@ -109,8 +107,8 @@ fun ProfileScreen() {
 fun BottomNavigationBar(navController: NavController, modifier: Modifier) {
     val items = listOf(
         BottomNavItem("Home", Icons.Filled.Home),
-        BottomNavItem("Search", Icons.Filled.Search),
-        BottomNavItem("Profile", Icons.Filled.Person)
+        BottomNavItem("Add", Icons.Filled.Add),
+        BottomNavItem("Search", Icons.Filled.Search)
     )
 
     BottomNavigation(modifier = modifier) { // Apply the modifier here
@@ -135,21 +133,6 @@ fun BottomNavigationBar(navController: NavController, modifier: Modifier) {
 
 
 data class BottomNavItem(val label: String, val icon: ImageVector, val route: String = label.lowercase())
-
-
-fun deleteDB(appCont: Context){
-    val dbHelper = DBHelper(appCont)
-    dbHelper.close()
-
-    // Delete the database file
-    val dbFile = appCont.getDatabasePath("daily.db")
-    if (dbFile.exists()) {
-        dbFile.delete()
-        log("Database deleted")
-    } else {
-        log("Database file not found, and not deleted")
-    }
-}
 
 fun log(msg: String){
     Log.d("MainActivity", msg)
