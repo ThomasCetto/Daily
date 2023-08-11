@@ -24,10 +24,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import pack.pack.ui.theme.DailyTheme
+import androidx.navigation.compose.composable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
 
 
 class MainActivity : ComponentActivity() {
@@ -41,38 +50,91 @@ class MainActivity : ComponentActivity() {
         val dbHelper = DBHelper(applicationContext)
         val db = dbHelper.writableDatabase
 
-
         setContent {
             DailyTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-
-                    AddTaskButton()
-                    val defMod = Modifier.fillMaxWidth().padding(8.dp)
-                    Column(
-                        modifier = defMod
-                    ) {
-                        Row(
-                            modifier = defMod,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(text = Dates().getCoolTodaysDate() + "\n\n TODO LIST")
-
+                    val navController = rememberNavController()
+                    Box {
+                        NavHost(navController, startDestination = "home") {
+                            composable("home") { HomeScreen(applicationContext) }
+                            composable("search") { SearchScreen() }
+                            composable("profile") { ProfileScreen() }
                         }
-                        Row(
-                            modifier = defMod,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CheckBoxList(applicationContext)
-                        }
+                        BottomNavigationBar(navController, Modifier.align(Alignment.BottomCenter))
                     }
                 }
             }
         }
+
+
     }
 }
+
+@Composable
+fun HomeScreen(appCont: Context) {
+    AddTaskButton()
+    val defMod = Modifier.fillMaxWidth().padding(8.dp)
+    Column(
+        modifier = defMod
+    ) {
+        Row(
+            modifier = defMod,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = Dates().getCoolTodaysDate() + "\n\n TODO LIST")
+        }
+        Row(
+            modifier = defMod,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CheckBoxList(appCont)
+        }
+    }
+}
+
+@Composable
+fun SearchScreen() {
+    // TODO: Add your search screen UI components here.
+}
+
+@Composable
+fun ProfileScreen() {
+    // TODO: Add your profile screen UI components here.
+}
+
+@Composable
+fun BottomNavigationBar(navController: NavController, modifier: Modifier) {
+    val items = listOf(
+        BottomNavItem("Home", Icons.Filled.Home),
+        BottomNavItem("Search", Icons.Filled.Search),
+        BottomNavItem("Profile", Icons.Filled.Person)
+    )
+
+    BottomNavigation(modifier = modifier) { // Apply the modifier here
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentDestination = navBackStackEntry?.destination
+
+        items.forEach { item ->
+            BottomNavigationItem(
+                icon = { Icon(item.icon, contentDescription = item.label) },
+                label = { Text(item.label) },
+                selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
+                onClick = {
+                    navController.navigate(item.route) {
+                        popUpTo(navController.graph.startDestinationId)
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+    }
+}
+
+
+data class BottomNavItem(val label: String, val icon: ImageVector, val route: String = label.lowercase())
 
 
 fun deleteDB(appCont: Context){
@@ -91,34 +153,6 @@ fun deleteDB(appCont: Context){
 
 fun log(msg: String){
     Log.d("MainActivity", msg)
-}
-
-@Preview
-@Composable
-fun AddTaskButton(){
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)  // Add padding to create some spacing
-    ) {
-        Button(
-            onClick = { /* Handle button click */ },
-            modifier = Modifier
-                .size(75.dp)  // Adjust the button size as needed
-                .align(Alignment.BottomEnd), // Align to the bottom right corner
-            colors = ButtonDefaults.buttonColors(contentColor = Color.Green)
-        ) {
-            Text(
-                text = "+",
-                style = TextStyle(fontSize = 30.sp),
-                textAlign = TextAlign.Center,
-                color = Color.White
-            )
-        }
-    }
-
-
 }
 
 @Composable
