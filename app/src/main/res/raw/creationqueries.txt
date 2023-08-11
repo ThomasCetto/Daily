@@ -1,0 +1,7 @@
+CREATE TABLE task(
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	name TEXT NOT NULL,
+	day TEXT NOT NULL
+);
+INSERT INTO task(name, day) VALUES ("mangiare", "2023-08-10");
+INSERT INTO task(name, day) VALUES ("bere", "2023-08-11");
