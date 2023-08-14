@@ -121,20 +121,37 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
     }
 
 
-    fun getTodaysTaskNames(): ArrayList<String>{
-        val cursor: Cursor = getAllRowsForToday()
-        val out = ArrayList<String>()
-        val nameIndex = cursor.getColumnIndex("name")
+    fun getTodaysTaskInfo(): Array<ArrayList<String>> {
+        val names = ArrayList<String>()
+        val importanceValues = ArrayList<String>()
+        val checkedStatus = ArrayList<String>()
 
-        if (nameIndex >= 0) {
+        val cursor: Cursor = getAllRowsForToday()
+
+        val nameIndex = cursor.getColumnIndex("name")
+        val importanceIndex = cursor.getColumnIndex("important")
+        val checkedIndex = cursor.getColumnIndex("checked")
+        log("holy molly $nameIndex, $importanceIndex, $checkedIndex")
+        if (nameIndex >= 0 && importanceIndex >= 0 && checkedIndex >= 0) {
+
             while (cursor.moveToNext()) {
                 val name = cursor.getString(nameIndex)
-                out.add(name)
+                val importance = cursor.getInt(importanceIndex).toString()
+                val checked = cursor.getInt(checkedIndex).toString()
+
+                names.add(name)
+                importanceValues.add(importance)
+                checkedStatus.add(checked)
             }
-            cursor.close()
         }
-        return out
+
+        cursor.close()
+
+        log("]]]]]]]]]]]$names $importanceValues $checkedStatus")
+        return arrayOf(names, importanceValues, checkedStatus)
     }
+
+
 
     fun deleteDB(appCont: Context){
         close()
