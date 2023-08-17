@@ -216,10 +216,8 @@ fun CheckBoxList(appCont: Context) {
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        val rows: Array<ArrayList<String>> = dbHelper.getTodaysTaskInfo()
-        log("@@@@ rows[0] length" + rows[0].size)
-        for (rowIdx in 0 until rows[0].size) {
-            log("#### " + rows[0][0])
+        val rows: ArrayList<HashMap<String, String>> = dbHelper.getTodaysTaskInfo()
+        for (row in rows) {
 
             var isChecked by remember {
                 mutableStateOf(false)
@@ -227,7 +225,9 @@ fun CheckBoxList(appCont: Context) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(10.dp),
+                    .padding(10.dp)
+                    .background(if (row["checked"] == "1") Color.Green else (if (row["important"] == "1") Color.Red else Color.Transparent))
+                ,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(
@@ -236,11 +236,10 @@ fun CheckBoxList(appCont: Context) {
                         isChecked = newChecked
                     },
                     modifier = Modifier
-                        .background(if (rows[2][rowIdx] == "1") Color.Green else (if (rows[1][rowIdx] == "1") Color.Red else Color.Transparent))
+                        .background(if (row["checked"] == "1") Color.Green else (if (row["important"] == "1") Color.Red else Color.Transparent))
 
                 )
-                Text(text = rows[0][rowIdx])
-
+                Text(text = row["name"] ?: "Errore")
             }
         }
     }

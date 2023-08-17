@@ -121,37 +121,41 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
     }
 
 
-    fun getTodaysTaskInfo(): Array<ArrayList<String>> {
-        val names = ArrayList<String>()
-        val importanceValues = ArrayList<String>()
-        val checkedStatus = ArrayList<String>()
+    fun getTodaysTaskInfo(): ArrayList<HashMap<String,String>> {
+        val info = ArrayList<HashMap<String, String>>()
 
         val cursor: Cursor = getAllRowsForToday()
 
+        val idIndex = cursor.getColumnIndex("id")
         val nameIndex = cursor.getColumnIndex("name")
         val importanceIndex = cursor.getColumnIndex("important")
         val checkedIndex = cursor.getColumnIndex("checked")
-        log("holy molly $nameIndex, $importanceIndex, $checkedIndex")
+
         if (nameIndex >= 0 && importanceIndex >= 0 && checkedIndex >= 0) {
-
             while (cursor.moveToNext()) {
-                val name = cursor.getString(nameIndex)
-                val importance = cursor.getInt(importanceIndex).toString()
-                val checked = cursor.getInt(checkedIndex).toString()
+                val rowInfo = HashMap<String, String>()
+                rowInfo["id"] = cursor.getInt(idIndex).toString()
+                rowInfo["name"] = cursor.getString(nameIndex)
+                rowInfo["important"] = cursor.getInt(importanceIndex).toString()
+                rowInfo["checked"] = cursor.getInt(checkedIndex).toString()
 
-                names.add(name)
-                importanceValues.add(importance)
-                checkedStatus.add(checked)
+                info.add(rowInfo)
             }
         }
 
         cursor.close()
 
-        log("]]]]]]]]]]]$names $importanceValues $checkedStatus")
-        return arrayOf(names, importanceValues, checkedStatus)
+        return info
     }
 
-
+    fun changeCheckID(id: Int){
+        val db = writableDatabase
+        val updateQuery = "UPDATE task " +
+                "SET checked = 1 - checked " +
+                "WHERE id = $id"
+        db.execSQL(updateQuery)
+        db.close()
+    }
 
     fun deleteDB(appCont: Context){
         close()
@@ -179,6 +183,5 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         log("DB now: " + getRowStrings())
 
         return writableDatabase.insert("task", null, values)
-
     }
 }
