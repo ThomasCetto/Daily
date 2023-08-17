@@ -148,10 +148,10 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         return info
     }
 
-    fun changeCheckID(id: Int){
+    fun changeCheckID(id: Int, value: Int){
         val db = writableDatabase
         val updateQuery = "UPDATE task " +
-                "SET checked = 1 - checked " +
+                "SET checked = $value " +
                 "WHERE id = $id"
         db.execSQL(updateQuery)
         db.close()

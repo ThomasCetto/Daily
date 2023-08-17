@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
         log("APP STARTED")
 
         // deletes and it will re-create
-        DBHelper(applicationContext).deleteDB(applicationContext)
+        //DBHelper(applicationContext).deleteDB(applicationContext)
 
         setContent {
             DailyTheme {
@@ -98,7 +98,7 @@ fun HomeScreen(appCont: Context) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = Dates().getTodaysCoolDate() + "\n\n TODO LIST",
+                text = Dates().getTodaysCoolDate() + "\n\n TO-DO LIST",
                 style = TextStyle(fontSize = 24.sp),
                 textAlign = TextAlign.Center, // Center the text horizontally
                 modifier = Modifier.fillMaxWidth() // Expand the width to the full available width
@@ -142,21 +142,10 @@ fun AddScreen(appCont: Context) {
             log("AGGIUNGI TASK")
         }
 
-        RowWithVerticalAlignment(verticalAlignmentMod) {
-            NameField()
-        }
-
-        RowWithVerticalAlignment(verticalAlignmentMod) {
-            DateSelector()
-        }
-
-        RowWithVerticalAlignment(verticalAlignmentMod) {
-            ImportanceSelector()
-        }
-
-        RowWithVerticalAlignment(verticalAlignmentMod) {
-            ConfirmationButton(appCont)
-        }
+        RowWithVerticalAlignment(verticalAlignmentMod) { NameField() }
+        RowWithVerticalAlignment(verticalAlignmentMod) { DateSelector() }
+        RowWithVerticalAlignment(verticalAlignmentMod) { ImportanceSelector() }
+        RowWithVerticalAlignment(verticalAlignmentMod) { ConfirmationButton(appCont) }
     }
 }
 
@@ -219,24 +208,32 @@ fun CheckBoxList(appCont: Context) {
         val rows: ArrayList<HashMap<String, String>> = dbHelper.getTodaysTaskInfo()
         for (row in rows) {
 
-            var isChecked by remember {
-                mutableStateOf(false)
-            }
+            var isChecked by remember { mutableStateOf(row["checked"].equals("1")) }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp)
-                    .background(if (row["checked"] == "1") Color.Green else (if (row["important"] == "1") Color.Red else Color.Transparent))
-                ,
+                    .background(if (isChecked) Color.Green else (if (row["important"] == "1") Color.Red else Color.Transparent)),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 Checkbox(
                     checked = isChecked,
-                    onCheckedChange = { newChecked ->
-                        isChecked = newChecked
+                    onCheckedChange = {
+
+                            newChecked ->
+                        try {
+                            isChecked = newChecked
+                            dbHelper.changeCheckID(
+                                Integer.parseInt(row["id"] ?: "-1"),
+                                if (newChecked) 1 else 0
+                            )
+                        }catch(e: Exception){
+                    log(e.message ?: "errore nell errore")
+                }
                     },
                     modifier = Modifier
-                        .background(if (row["checked"] == "1") Color.Green else (if (row["important"] == "1") Color.Red else Color.Transparent))
+                        .background(if (isChecked) Color.Green else (if (row["important"] == "1") Color.Red else Color.Transparent))
 
                 )
                 Text(text = row["name"] ?: "Errore")
@@ -244,7 +241,6 @@ fun CheckBoxList(appCont: Context) {
         }
     }
 }
-
 
 @Composable
 fun DateSelector() {
@@ -258,12 +254,10 @@ fun DateSelector() {
 
     mCalendar.time = Date()
 
-    // Declaring a string value to
-    // store date in string format
-    val mDate = remember { mutableStateOf("") }
+    // Date in string format
+    val mDate = remember { mutableStateOf(Dates().getTodaysDateSlash()) }
 
-    // Declaring DatePickerDialog and setting
-    // initial values as current values (present year, month and day)
+    // Creating dialog
     val mDatePickerDialog = DatePickerDialog(
         mContext,
         { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
@@ -271,9 +265,11 @@ fun DateSelector() {
         }, mYear, mMonth, mDay
     )
 
-    Text(text="Giorno", textAlign=TextAlign.Center)
-    // Creating a button that on
-    // click displays/shows the DatePickerDialog
+    log("ziobec" + mDate.value)
+
+
+    Text(text="Giorno      " + Dates().convertDate(mDate.value, "dd/MM/yyyy"))
+    // Button that opens the dialog
     Button(onClick = {
         mDatePickerDialog.show()
     },
@@ -328,7 +324,7 @@ fun ConfirmationButton(context: Context){
             helper.addTask(taskName, taskDay, taskImportance)
             log("La task è stata aggiunta con successo")
         }catch (ex: Exception){
-            log("La task non è stata aggiunta a causa di un errore: " + ex.message)
+            log("La task non è stata aggiunta a causa di un errore: " + ex.message + ex.stackTraceToString())
         }
     }) {
         Text("Conferma")
