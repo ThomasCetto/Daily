@@ -31,6 +31,7 @@ import pack.pack.ui.theme.DailyTheme
 import androidx.navigation.compose.composable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
@@ -43,8 +44,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.compose.NavHost
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import androidx.compose.ui.platform.LocalContext
@@ -63,6 +62,9 @@ class MainActivity : ComponentActivity() {
 
         // deletes and it will re-create
         //DBHelper(applicationContext).deleteDB(applicationContext)
+
+        DBHelper(applicationContext).deleteOldTasks()
+
 
         setContent {
             DailyTheme {
@@ -264,8 +266,6 @@ fun DateSelector() {
             mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
         }, mYear, mMonth, mDay
     )
-
-    log("ziobec" + mDate.value)
 
 
     Text(text="Giorno      " + Dates().convertDate(mDate.value, "dd/MM/yyyy"))

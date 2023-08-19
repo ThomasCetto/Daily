@@ -171,7 +171,6 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
     }
 
     fun addTask(name: String, day: String, importance: Int): Long{
-        val db = writableDatabase
         val values = ContentValues().apply {
             put("name", name)
             put("day", Dates().convertDate(day))
@@ -179,9 +178,14 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
             put("checked", 0)
         }
 
-        log("trying to add task with day: $name, day: $day, importance: $importance")
-        log("DB now: " + getRowStrings())
+        log("trying to add task with name: $name, day: $day, importance: $importance")
+        log("DB before: " + getRowStrings())
 
         return writableDatabase.insert("task", null, values)
+    }
+
+    fun deleteOldTasks(){
+        log("todays date: " + Dates().getTodaysDate())
+        writableDatabase.delete("task", "day < ?", arrayOf(Dates().getTodaysDate()))
     }
 }
