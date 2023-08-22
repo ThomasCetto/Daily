@@ -190,11 +190,11 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         db.close()
     }
 
-    fun deleteDB(appCont: Context){
+    fun deleteDB(){
         close()
 
         // Delete the database file
-        val dbFile = appCont.getDatabasePath("daily.db")
+        val dbFile = appContext.getDatabasePath("daily.db")
         if (dbFile.exists()) {
             dbFile.delete()
             log("Database deleted")
@@ -280,7 +280,6 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         while(data.moveToNext()){
             dayValue = data.getString(dateIdx)
         }
-
 
         data.close()
 
