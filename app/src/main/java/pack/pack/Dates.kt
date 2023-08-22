@@ -69,4 +69,11 @@ class Dates {
     fun getDayOfMonth(): Int{
         return LocalDate.now().dayOfMonth
     }
+
+    fun dateIsTodaysDate(date: String): Boolean{
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val dateToCheck = LocalDate.parse(date, formatter)
+        val currentDate = LocalDate.now()
+        return dateToCheck == currentDate
+    }
 }

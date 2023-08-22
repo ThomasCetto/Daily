@@ -61,16 +61,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         log("APP STARTED")
 
+        val helper = DBHelper(applicationContext)
+
         // deletes and it will re-create
-        //DBHelper(applicationContext).deleteDB(applicationContext)
+        helper.deleteDB(applicationContext)
 
-        DBHelper(applicationContext).deleteOldTasks()
+        helper.deleteOldTasks()
 
-        DBHelper(applicationContext).addRepeatebles()
+        // adds repetitive tasks only if it's the first access of the day
+        if(!Dates().dateIsTodaysDate(helper.getLastAccessDay())) {
+            log("uela")
+            DBHelper(applicationContext).addRepeatebles()
+        }
 
         log("START DB RECORDS_____")
-        log(DBHelper(applicationContext).getTaskNames().toString())
-        log(DBHelper(applicationContext).getRepNames().toString())
+        log(helper.getTaskNames().toString())
+        log(helper.getRepNames().toString())
 
 
         setContent {

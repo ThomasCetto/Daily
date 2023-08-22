@@ -264,5 +264,29 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         log("End of addRepeatables")
     }
 
+    fun saveTodaysDate(){
+        val db = writableDatabase
+        db.execSQL(
+            "UPDATE stats " +
+                "SET dayOfAccess = " + Dates().getTodaysDate()
+        )
+        db.close()
+    }
+
+    fun getLastAccessDay(): String{
+        val data = readableDatabase.query("stats", null, null, null, null, null, null)
+        var dayValue = ""
+        val dateIdx =  if (data.getColumnIndex("dayOfAccess") >= 0) data.getColumnIndex("dayOfAccess") else 0
+        while(data.moveToNext()){
+            dayValue = data.getString(dateIdx)
+        }
+
+
+        data.close()
+
+        // saves today's date in the database as the most recent
+        saveTodaysDate()
+        return dayValue
+    }
 
 }
