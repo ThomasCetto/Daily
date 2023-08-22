@@ -2,8 +2,28 @@ CREATE TABLE task(
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	name TEXT NOT NULL,
 	day TEXT NOT NULL,
-	important TINYINT NOT NULL,
-	checked TINYINT NOT NULL
+	important INTEGER  NOT NULL,
+	checked INTEGER NOT NULL
 );
+
+CREATE TABLE repetitive(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    dayOfWeek INTEGER NOT NULL,
+    dayOfMonth INTEGER NOT NULL
+);
+
+CREATE TABLE stats(
+    dayOfAccess TEXT NOT NULL
+)
+
+
 INSERT INTO task(name, day, important, checked) VALUES ("mangiare", "2023-08-10", 0, 0);
-INSERT INTO task(name, day, important, checked) VALUES ("bere", "2023-08-12", 1, 0);
+INSERT INTO task(name, day, important, checked) VALUES ("bere", "2023-08-22", 1, 0);
+
+INSERT INTO repetitive(name, dayOfWeek, dayOfMonth) VALUES ("oggi è mart", 2, -1);
+INSERT INTO repetitive(name, dayOfWeek, dayOfMonth) VALUES ("oggi è lun", 1, -1);
+INSERT INTO repetitive(name, dayOfWeek, dayOfMonth) VALUES ("oggi è merc", 3, -1);
+INSERT INTO repetitive(name, dayOfWeek, dayOfMonth) VALUES ("oggi è il 22", -1, 22);
+INSERT INTO repetitive(name, dayOfWeek, dayOfMonth) VALUES ("repetit5", -1, 21);
+INSERT INTO repetitive(name, dayOfWeek, dayOfMonth) VALUES ("oggi è il 23", -1, 23);

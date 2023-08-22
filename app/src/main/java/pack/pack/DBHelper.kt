@@ -80,6 +80,10 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         return db.query("task", null, null, null, null, null, null)
     }
 
+    private fun getAllRepRows(): Cursor {
+        val db = readableDatabase
+        return db.query("repetitive", null, null, null, null, null, null)
+    }
     private fun log(msg: String){
         Log.d("MainActivity", msg)
     }
@@ -104,8 +108,37 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         return rows
     }
 
+    private fun getRepRowStrings(): ArrayList<String>{
+        val rows = ArrayList<String>()
+
+        try {
+            val cursor = getAllRepRows()
+            val columnNames = cursor.columnNames  // Get column names dynamically
+
+            while (cursor.moveToNext()) {
+                val rowInfo = columnNames.joinToString(", ") { columnName ->
+                    val value = cursor.getString(cursor.getColumnIndexOrThrow(columnName))
+                    "$columnName: $value"
+                }
+                rows.add(rowInfo)
+            }
+        } catch (e: Exception) {
+            log("Error in obtaining the rows " + e.message.toString())
+        }
+        return rows
+    }
+
     fun getTaskNames(): ArrayList<String>{
         val strings: ArrayList<String> = getRowStrings()
+        val outList = ArrayList<String>()
+        for (string in strings){
+            outList.add(string.split("name: ")[1].split(", day: ")[0])
+        }
+        return outList
+    }
+
+    fun getRepNames(): ArrayList<String>{
+        val strings: ArrayList<String> = getRepRowStrings()
         val outList = ArrayList<String>()
         for (string in strings){
             outList.add(string.split("name: ")[1].split(", day: ")[0])
@@ -188,4 +221,48 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         log("todays date: " + Dates().getTodaysDate())
         writableDatabase.delete("task", "day < ?", arrayOf(Dates().getTodaysDate()))
     }
+
+    fun getAllRepeatableTasks(): Cursor{
+        val db = readableDatabase
+        return db.query("repetitive", null, "", null, null, null, null)
+    }
+
+    fun addRepeatebles(){
+        // Searches for repetitiveTasks that are scheduled for the current day of week or month.
+        // Then inserts new tasks for each of these tasks for today's day
+
+        log("Start of addRepeatables")
+
+        val date = Dates()
+        val idxInWeek = date.getDayOfWeekIndex()
+        val idxInMonth = date.getDayOfMonth()
+
+        log("idxInWeek: $idxInWeek, idxInMonth: $idxInMonth")
+
+        val data = readableDatabase.query("repetitive", null, "dayOfWeek = $idxInWeek OR dayOfMonth = $idxInMonth", null, null, null, null)
+
+        // get name column index
+        val nameIdx =  if (data.getColumnIndex("name") >= 0) data.getColumnIndex("name") else 0
+
+        log("nameIDx: $nameIdx")
+
+        // for each row adds a new task
+        while(data.moveToNext()){
+            val nameValue = data.getString(nameIdx)
+
+            val contentValues = ContentValues().apply {
+                put("name", nameValue)
+                put("day", date.getTodaysDate())
+                put("important", 0)
+                put("checked", 0)
+            }
+            writableDatabase.insert("task", null, contentValues)
+            log("Aggiunta nuova task: $nameValue")
+        }
+
+        data.close()
+        log("End of addRepeatables")
+    }
+
+
 }

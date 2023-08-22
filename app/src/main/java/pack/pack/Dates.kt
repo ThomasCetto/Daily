@@ -61,4 +61,12 @@ class Dates {
         val date: LocalDate = LocalDate.parse(modDate, inputFormat)
         return date.format(outputFormat)
     }
+
+    fun getDayOfWeekIndex(): Int{
+        return LocalDate.now().dayOfWeek.value
+    }
+
+    fun getDayOfMonth(): Int{
+        return LocalDate.now().dayOfMonth
+    }
 }
