@@ -64,14 +64,14 @@ class MainActivity : ComponentActivity() {
         val helper = DBHelper(applicationContext)
 
         // deletes and it will re-create
-        helper.deleteDB(applicationContext)
+        helper.deleteDB()
 
         helper.deleteOldTasks()
 
         // adds repetitive tasks only if it's the first access of the day
         if(!Dates().dateIsTodaysDate(helper.getLastAccessDay())) {
             log("uela")
-            DBHelper(applicationContext).addRepeatebles()
+            helper.addRepeatebles()
         }
 
         log("START DB RECORDS_____")
@@ -142,12 +142,7 @@ fun AddScreen(appCont: Context) {
     Column(
         modifier = defMod
     ) {
-        val verticalAlignmentMod = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .then(Modifier.verticalScroll(rememberScrollState())) // Add vertical scrolling if needed
-
-        RowWithVerticalAlignment(verticalAlignmentMod) {
+        RowWithVerticalAlignment() {
             Text(
                 text = "AGGIUNGI TASK",
                 style = TextStyle(fontSize = 24.sp),
@@ -157,10 +152,10 @@ fun AddScreen(appCont: Context) {
             log("AGGIUNGI TASK")
         }
 
-        RowWithVerticalAlignment(verticalAlignmentMod) { NameField() }
-        RowWithVerticalAlignment(verticalAlignmentMod) { DateSelector() }
-        RowWithVerticalAlignment(verticalAlignmentMod) { ImportanceSelector() }
-        RowWithVerticalAlignment(verticalAlignmentMod) { ConfirmationButton(appCont) }
+        RowWithVerticalAlignment() { NameField() }
+        RowWithVerticalAlignment() { DateSelector() }
+        RowWithVerticalAlignment() { ImportanceSelector() }
+        RowWithVerticalAlignment() { ConfirmationButton(appCont) }
     }
 }
 
@@ -169,8 +164,13 @@ fun RowWithVerticalAlignment(
     modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit
 ) {
+    val verticalAlignmentMod = Modifier
+        .fillMaxWidth()
+        .padding(8.dp)
+        .then(Modifier.verticalScroll(rememberScrollState())) // Adds vertical scrolling if needed
+
     Row(
-        modifier = modifier,
+        modifier = verticalAlignmentMod,
         verticalAlignment = Alignment.CenterVertically,
         content = content
     )
