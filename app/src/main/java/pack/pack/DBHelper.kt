@@ -227,7 +227,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         return db.query("repetitive", null, "", null, null, null, null)
     }
 
-    fun addRepeatebles(){
+    fun addRepeatables(){
         // Searches for repetitiveTasks that are scheduled for the current day of week or month.
         // Then inserts new tasks for each of these tasks for today's day
 
@@ -264,7 +264,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         log("End of addRepeatables")
     }
 
-    fun saveTodaysDate(){
+    private fun saveTodaysDate(){
         val db = writableDatabase
         db.execSQL(
             "UPDATE stats " +

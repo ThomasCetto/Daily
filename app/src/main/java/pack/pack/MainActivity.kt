@@ -50,10 +50,12 @@ import java.util.Date
 import androidx.compose.ui.platform.LocalContext
 
 
-var taskName: String = ""
-var taskDay: String = ""
-var taskImportance: Int = 0
-var taskRepetition: Boolean = false
+var taskName: String by mutableStateOf("")
+var taskDay: String by mutableStateOf("")
+var taskImportance: Int by mutableIntStateOf(0)
+var taskRepetition: Boolean by mutableStateOf(false)
+var isDayOfWeek: Boolean by mutableStateOf(false)
+var daysOfWeekChosen by mutableStateOf(List(10) { false })
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("SetTextI18n")
@@ -69,9 +71,8 @@ class MainActivity : ComponentActivity() {
         helper.deleteOldTasks()
 
         // adds repetitive tasks only if it's the first access of the day
-        if(!Dates().dateIsTodaysDate(helper.getLastAccessDay())) {
-            log("uela")
-            helper.addRepeatebles()
+        if (!Dates().dateIsTodaysDate(helper.getLastAccessDay())) {
+            helper.addRepeatables()
         }
 
         log("START DB RECORDS_____")
@@ -86,7 +87,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val navController = rememberNavController()
-                    Box(modifier=Modifier.fillMaxWidth()) {
+                    Box(modifier = Modifier.fillMaxWidth()) {
                         NavHost(navController, startDestination = "home") {
                             composable("home") { HomeScreen(applicationContext) }
                             composable("search") { SearchScreen() }
@@ -142,7 +143,7 @@ fun AddScreen(appCont: Context) {
     Column(
         modifier = defMod
     ) {
-        RowWithVerticalAlignment() {
+        RowWithVerticalAlignment {
             Text(
                 text = "AGGIUNGI TASK",
                 style = TextStyle(fontSize = 24.sp),
@@ -152,11 +153,86 @@ fun AddScreen(appCont: Context) {
             log("AGGIUNGI TASK")
         }
 
-        RowWithVerticalAlignment() { NameField() }
-        RowWithVerticalAlignment() { DateSelector() }
-        RowWithVerticalAlignment() { ImportanceSelector() }
-        RowWithVerticalAlignment() { ConfirmationButton(appCont) }
+        RowWithVerticalAlignment { NameField() }
+
+        // type of task scheduling chooser
+        RowWithVerticalAlignment { TaskSchedulingChooser() }
+
+        if (taskRepetition) {
+            RowWithVerticalAlignment { DayOfWeekOrMonth() } // days of the week or month
+
+            if (isDayOfWeek) {
+                RowWithVerticalAlignment {}
+            } else {
+                RowWithVerticalAlignment { DayOfWeekSelector() }
+            }
+        } else {
+            RowWithVerticalAlignment { DateSelector() }
+            RowWithVerticalAlignment { ImportanceSelector() }
+        }
+
+        RowWithVerticalAlignment { ConfirmationButton(appCont) }
     }
+}
+
+@Composable
+fun DayOfMonthSelector() {
+    // TODO
+}
+
+@Composable
+fun DayOfWeekSelector() {
+    var checkedStates by remember { mutableStateOf(List(10) { false }) }
+    val daysOfWeek =
+        arrayOf("Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica", "a", "d", "fa")
+
+    Column {
+        for (index in 0 until 10) {
+            Row {
+                Text(text = daysOfWeek[index])
+                Checkbox(
+                    checked = checkedStates[index],
+                    onCheckedChange = { isChecked ->
+                        checkedStates = checkedStates.toMutableList().also {
+                            it[index] = isChecked
+                        }
+                    }
+                )
+            }
+        }
+    }
+    daysOfWeekChosen = checkedStates
+}
+
+@Composable
+fun DayOfWeekOrMonth() {
+    Text(text = "Giorno del mese")
+    var checked by remember { mutableStateOf(false) }
+
+    Switch(
+        checked = checked,
+        onCheckedChange = {
+            checked = it
+        }
+    )
+    Text(text = "Giorno della settimana")
+
+    isDayOfWeek = checked
+}
+
+@Composable
+fun TaskSchedulingChooser() {
+    Text(text = "Task a ripetizione   ")
+    var checked by remember { mutableStateOf(false) }
+
+    Switch(
+        checked = checked,
+        onCheckedChange = {
+            checked = it
+        }
+    )
+    taskRepetition = checked
+    log("Task repetition changed to $taskRepetition")
 }
 
 @Composable
@@ -175,7 +251,6 @@ fun RowWithVerticalAlignment(
         content = content
     )
 }
-
 
 @Composable
 fun BottomNavigationBar(navController: NavController, modifier: Modifier) {
@@ -221,6 +296,7 @@ fun CheckBoxList(appCont: Context) {
     val dbHelper = DBHelper(appCont)
     val rows: ArrayList<HashMap<String, String>> = dbHelper.getTodaysTaskInfo()
 
+    // lazyColumn makes scrolling possible
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -239,8 +315,7 @@ fun CheckBoxList(appCont: Context) {
 
                 Checkbox(
                     checked = isChecked,
-                    onCheckedChange = {
-                            newChecked ->
+                    onCheckedChange = { newChecked ->
                         try {
                             isChecked = newChecked
                             dbHelper.changeCheckID(
@@ -338,9 +413,11 @@ fun ImportanceSelector() {
 @Composable
 fun ConfirmationButton(context: Context) {
     Button(onClick = {
-        val helper = DBHelper(context)
         try {
-            helper.addTask(taskName, taskDay, taskImportance)
+            if (taskName != "" && taskName != " ")
+                throw Exception("la task non ha un nome e non verrà inserita")
+
+            DBHelper(context).addTask(taskName, taskDay, taskImportance)
             log("La task è stata aggiunta con successo")
         } catch (ex: Exception) {
             log("La task non è stata aggiunta a causa di un errore: " + ex.message + ex.stackTraceToString())
