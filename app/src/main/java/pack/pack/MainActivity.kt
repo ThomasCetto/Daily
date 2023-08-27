@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.DatePicker
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -33,7 +34,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Add
@@ -55,7 +55,7 @@ var taskDay: String by mutableStateOf("")
 var taskImportance: Int by mutableIntStateOf(0)
 var taskRepetition: Boolean by mutableStateOf(false)
 var isDayOfWeek: Boolean by mutableStateOf(false)
-var daysOfWeekChosen by mutableStateOf(List(10) { false })
+var daysOfWeekChosen by mutableStateOf(List(7) { false })
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("SetTextI18n")
@@ -141,7 +141,7 @@ fun AddScreen(appCont: Context) {
         .padding(8.dp)
 
     Column(
-        modifier = defMod
+        modifier = defMod.verticalScroll(ScrollState(0))
     ) {
         RowWithVerticalAlignment {
             Text(
@@ -162,9 +162,9 @@ fun AddScreen(appCont: Context) {
             RowWithVerticalAlignment { DayOfWeekOrMonth() } // days of the week or month
 
             if (isDayOfWeek) {
-                RowWithVerticalAlignment {}
-            } else {
                 RowWithVerticalAlignment { DayOfWeekSelector() }
+            } else {
+                RowWithVerticalAlignment { DayOfMonthSelector() }
             }
         } else {
             RowWithVerticalAlignment { DateSelector() }
@@ -180,14 +180,24 @@ fun DayOfMonthSelector() {
     // TODO
 }
 
+/*
+
+LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        items(items = rows, itemContent = { row ->
+ */
+
+
 @Composable
 fun DayOfWeekSelector() {
-    var checkedStates by remember { mutableStateOf(List(10) { false }) }
-    val daysOfWeek =
-        arrayOf("Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica", "a", "d", "fa")
+    var checkedStates by remember { mutableStateOf(List(7) { false }) }
+    val daysOfWeek = arrayOf("Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica")
 
     Column {
-        for (index in 0 until 10) {
+        for (index in 0 until 7) {
             Row {
                 Text(text = daysOfWeek[index])
                 Checkbox(
@@ -202,11 +212,12 @@ fun DayOfWeekSelector() {
         }
     }
     daysOfWeekChosen = checkedStates
+    log("Days of week values: $daysOfWeekChosen")
 }
 
 @Composable
 fun DayOfWeekOrMonth() {
-    Text(text = "Giorno del mese")
+    Text(text = "gg mese     ")
     var checked by remember { mutableStateOf(false) }
 
     Switch(
@@ -215,7 +226,7 @@ fun DayOfWeekOrMonth() {
             checked = it
         }
     )
-    Text(text = "Giorno della settimana")
+    Text(text = "     gg settimana")
 
     isDayOfWeek = checked
 }
@@ -237,13 +248,11 @@ fun TaskSchedulingChooser() {
 
 @Composable
 fun RowWithVerticalAlignment(
-    modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit
 ) {
     val verticalAlignmentMod = Modifier
         .fillMaxWidth()
         .padding(8.dp)
-        .then(Modifier.verticalScroll(rememberScrollState())) // Adds vertical scrolling if needed
 
     Row(
         modifier = verticalAlignmentMod,
