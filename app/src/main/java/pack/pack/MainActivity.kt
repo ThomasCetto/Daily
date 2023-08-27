@@ -317,7 +317,6 @@ fun NameField() {
             .fillMaxWidth()
             .height(56.dp)
             .border(1.dp, Color.Gray, shape = MaterialTheme.shapes.small)
-            .wrapContentSize(Alignment.CenterStart) // Center vertically, align text to start (left)
     )
 
     taskName = textState.text
