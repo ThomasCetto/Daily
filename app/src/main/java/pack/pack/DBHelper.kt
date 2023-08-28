@@ -21,31 +21,24 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
     }
 
     override fun onCreate(db: SQLiteDatabase) {
-
-        log("STARTING onCreate")
         // Check if the table exists before creating it
         val tableExistsQuery = "SELECT name FROM sqlite_master WHERE type='table' AND name='my_table'"
         val cursor = db.rawQuery(tableExistsQuery, null)
 
         if (cursor != null && cursor.count > 0) {
             cursor.close()
-            log("DATABASE ALREADY EXIST")
             return  // Table already exists
         }
 
-        log("TRYING TO CREATE THE TABLES")
         try {
             val queries = readQueriesFromFile(appContext, R.raw.creationqueries)
             for (query in queries) {
-                Log.d("MainActivity", "Query: $query")
                 db.execSQL(query)
             }
-            log("TABLES CREATED SUCCESSFULLY")
         } catch (e: SQLException) {
             log("Error creating tables: ${e.message}")
         }
-
-
+        log("THE DATABASE WAS CREATED")
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -71,7 +64,6 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
             log("Error reading queries: ${e.message}")
 
         }
-        log("Read queries: $queries")
         return queries
     }
 
@@ -197,13 +189,41 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         val dbFile = appContext.getDatabasePath("daily.db")
         if (dbFile.exists()) {
             dbFile.delete()
-            log("Database deleted")
+            log("DATABASE DELETED")
         } else {
             log("Database file not found, and not deleted")
         }
     }
 
-    fun addTask(name: String, day: String, importance: Int): Long{
+    fun insertRepeatable(name: String, dayOfMonth: Int = -1, daysOfWeek: List<Boolean> = emptyList()){
+        var idx = 0
+
+        for(day in daysOfWeek){
+            idx += 1 //day of week indexes start from 1
+            if (!day) continue
+
+            val values = ContentValues().apply{
+                put("name", name)
+                put("dayOfWeek", idx)
+                put("dayOfMonth", -1)
+            }
+            writableDatabase.insert("repetitive", null, values)
+            log("Added repetitive task with name: $name, in day of the week: $idx")
+        }
+
+        if (dayOfMonth != -1){
+            val values = ContentValues().apply{
+                put("name", name)
+                put("dayOfWeek", -1)
+                put("dayOfMonth", dayOfMonth)
+            }
+            writableDatabase.insert("repetitive", null, values)
+            log("Added rep task with name: $name, in day of the month: $dayOfMonth")
+        }
+
+    }
+
+    fun insertTask(name: String, day: String, importance: Int): Long{
         val values = ContentValues().apply {
             put("name", name)
             put("day", Dates().convertDate(day))

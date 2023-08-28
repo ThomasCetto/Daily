@@ -55,8 +55,9 @@ var taskDay: String by mutableStateOf("")
 var taskImportance: Int by mutableIntStateOf(0)
 var taskRepetition: Boolean by mutableStateOf(false)
 var isDayOfWeek: Boolean by mutableStateOf(false)
-var daysOfWeekChosen by mutableStateOf(List(7) { false })
-var dayOfMonthChosen by mutableIntStateOf(1)
+var daysOfWeekChosen: List<Boolean> by mutableStateOf(List(7) { false })
+var dayOfMonthChosen: Int by mutableIntStateOf(-1)
+var confirmationMessage: String by mutableStateOf("")
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("SetTextI18n")
@@ -157,17 +158,23 @@ fun AddScreen(appCont: Context) {
         RowWithVerticalAlignment { NameField() }
 
         // type of task scheduling chooser
-        RowWithVerticalAlignment { TaskSchedulingChooser() }
+        RowWithVerticalAlignment { TaskSchedulingChooser() } // repetition or not switch
 
         if (taskRepetition) {
-            RowWithVerticalAlignment { DayOfWeekOrMonth() } // days of the week or month
+            resetInsertionData(taskRepet = true, isDoW = null)
+            RowWithVerticalAlignment { DayOfWeekOrMonth() } // day of month or week switch
 
             if (isDayOfWeek) {
+                log("cuaii")
+                resetInsertionData(taskRepet = true, isDoW = true)
                 RowWithVerticalAlignment { DayOfWeekSelector() }
             } else {
+                log("eueueueue")
+                resetInsertionData(taskRepet = true, isDoW = false)
                 RowWithVerticalAlignment { DayOfMonthSelector() }
             }
         } else {
+            resetInsertionData(taskRepet = false, isDoW = false)
             RowWithVerticalAlignment { DateSelector() }
             RowWithVerticalAlignment { ImportanceSelector() }
         }
@@ -206,6 +213,8 @@ fun NumberPicker(
         valueRange = minValue.toFloat()..maxValue.toFloat(),
         steps = maxValue - minValue
     )
+
+    log("Slider value: $dayOfMonthChosen")
 }
 
 @Composable
@@ -247,6 +256,7 @@ fun DayOfWeekOrMonth() {
     Text(text = "     gg settimana")
 
     isDayOfWeek = checked
+    log("isDayOfWeek changed to $isDayOfWeek")
 }
 
 @Composable
@@ -389,6 +399,7 @@ fun DateSelector() {
 
 
     Text(text = "Giorno      " + Dates().convertDate(mDate.value, "dd/MM/yyyy"))
+    log("Data format: ${mDate.value}")
     // Button that opens the dialog
     Button(
         onClick = {
@@ -422,7 +433,6 @@ fun NameField() {
     )
 
     taskName = textState.text
-    log("You entered: ${textState.text}")
 }
 
 @Composable
@@ -439,12 +449,18 @@ fun ImportanceSelector() {
 
 @Composable
 fun ConfirmationButton(context: Context) {
-    Button(onClick = {
+    Button(enabled = !taskName.isNullOrBlank(), // if it has a name it's enabled
+        onClick = {
         try {
-            if (taskName != "" && taskName != " ")
-                throw Exception("la task non ha un nome e non verrà inserita")
+            if (taskName == "" || taskName == " ")
+                throw Exception("la task non ha un nome e non verrà inserita\n")
 
-            DBHelper(context).addTask(taskName, taskDay, taskImportance)
+            if (taskRepetition){
+                DBHelper(context).insertRepeatable(taskName, dayOfMonthChosen, daysOfWeekChosen)
+            }else {
+                DBHelper(context).insertTask(taskName, taskDay, taskImportance)
+            }
+
             log("La task è stata aggiunta con successo")
         } catch (ex: Exception) {
             log("La task non è stata aggiunta a causa di un errore: " + ex.message + ex.stackTraceToString())
@@ -452,4 +468,16 @@ fun ConfirmationButton(context: Context) {
     }) {
         Text("Conferma")
     }
+}
+
+fun resetInsertionData(taskRepet: Boolean, isDoW: Boolean? = null){
+    taskDay = Dates().getTodaysDateSlash()
+    taskImportance = 0
+    taskRepetition = taskRepet
+    isDayOfWeek = isDoW ?: isDayOfWeek
+    daysOfWeekChosen = List(7){false}
+    dayOfMonthChosen = -1
+
+    log("Reset made with taskRepetition: $taskRepet, idDoW: $isDoW")
+
 }
