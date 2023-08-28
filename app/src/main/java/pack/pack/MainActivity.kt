@@ -56,6 +56,7 @@ var taskImportance: Int by mutableIntStateOf(0)
 var taskRepetition: Boolean by mutableStateOf(false)
 var isDayOfWeek: Boolean by mutableStateOf(false)
 var daysOfWeekChosen by mutableStateOf(List(7) { false })
+var dayOfMonthChosen by mutableIntStateOf(1)
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("SetTextI18n")
@@ -177,24 +178,41 @@ fun AddScreen(appCont: Context) {
 
 @Composable
 fun DayOfMonthSelector() {
-    // TODO
+    var selectedValue by remember { mutableIntStateOf(1) }
+
+    Text("Giorno: $selectedValue")
+
+    NumberPicker(
+        onValueChange = { newValue ->
+            selectedValue = newValue
+        },
+        minValue = 1,
+        maxValue = 31
+    )
 }
 
-/*
-
-LazyColumn(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        items(items = rows, itemContent = { row ->
- */
-
+@Composable
+fun NumberPicker(
+    onValueChange: (Int) -> Unit,
+    minValue: Int,
+    maxValue: Int
+) {
+    Slider(
+        value = dayOfMonthChosen.toFloat(),
+        onValueChange = { newValue ->
+            dayOfMonthChosen = newValue.toInt()
+            onValueChange(newValue.toInt())
+        },
+        valueRange = minValue.toFloat()..maxValue.toFloat(),
+        steps = maxValue - minValue
+    )
+}
 
 @Composable
 fun DayOfWeekSelector() {
     var checkedStates by remember { mutableStateOf(List(7) { false }) }
-    val daysOfWeek = arrayOf("Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica")
+    val daysOfWeek =
+        arrayOf("Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica")
 
     Column {
         for (index in 0 until 7) {
