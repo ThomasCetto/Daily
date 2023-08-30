@@ -57,7 +57,6 @@ var taskRepetition: Boolean by mutableStateOf(false)
 var isDayOfWeek: Boolean by mutableStateOf(false)
 var daysOfWeekChosen: List<Boolean> by mutableStateOf(List(7) { false })
 var dayOfMonthChosen: Int by mutableIntStateOf(-1)
-var confirmationMessage: String by mutableStateOf("")
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("SetTextI18n")
@@ -68,7 +67,7 @@ class MainActivity : ComponentActivity() {
         val helper = DBHelper(applicationContext)
 
         // deletes and it will re-create the database
-        helper.deleteDB()
+        //helper.deleteDB()
 
         helper.deleteOldTasks()
         helper.addRepeatables() // of the day
