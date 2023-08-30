@@ -68,7 +68,7 @@ class MainActivity : ComponentActivity() {
         val helper = DBHelper(applicationContext)
 
         // deletes and it will re-create the database
-        //helper.deleteDB()
+        helper.deleteDB()
 
         helper.deleteOldTasks()
         helper.addRepeatables() // of the day
@@ -453,7 +453,6 @@ fun ConfirmationButton(context: Context) {
                 DBHelper(context).insertTask(taskName, taskDay, taskImportance)
             }
 
-            log("Aggiunta task: $taskName")
         } catch (ex: Exception) {
             log("La task non è stata aggiunta a causa di un errore: " + ex.message + ex.stackTraceToString())
         }

@@ -3,6 +3,7 @@ package pack.pack
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
+import android.database.DatabaseUtils
 import android.database.SQLException
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
@@ -150,7 +151,6 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
 
     fun getTodaysTaskInfo(): ArrayList<HashMap<String,String>> {
         val info = ArrayList<HashMap<String, String>>()
-        val alreadyGot = HashSet<String>()
 
         val cursor: Cursor = getAllRowsForToday()
 
@@ -167,12 +167,6 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
                 rowInfo["name"] = cursor.getString(nameIndex)
                 rowInfo["important"] = cursor.getInt(importanceIndex).toString()
                 rowInfo["checked"] = cursor.getInt(checkedIndex).toString()
-
-                // only add once tasks with the same name
-                if (alreadyGot.contains(rowInfo["name"]))
-                    continue
-                else
-                    alreadyGot.add(rowInfo["name"] ?: "Something went wronk, but here is your task")
 
                 info.add(rowInfo)
             }
@@ -228,21 +222,30 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
                 put("dayOfMonth", dayOfMonth)
             }
             writableDatabase.insert("repetitive", null, values)
-            log("Added rep task with name: $name, in day of the month: $dayOfMonth")
+            log("Added repeatable task with name: $name, in day of the month: $dayOfMonth")
         }
 
-        addRepeatables() // adds the task right now if it's scheduleded also for today
+        addRepeatables() // adds the task right now if it's scheduled also for today
     }
 
-    fun insertTask(name: String, day: String, importance: Int): Long{
+    fun insertTask(name: String, day: String, importance: Int){
+        val newDate = Dates().convertDate(day)
+
+        // if the same name is already scheduled for the same day, it does not insert another one
+        if(isTaskAlreadyScheduled(name, newDate)){
+            log("The task was already scheduled for the same day, and it hadn't been added.")
+            return
+        }
+
         val values = ContentValues().apply {
             put("name", name)
-            put("day", Dates().convertDate(day))
+            put("day", newDate)
             put("important", importance)
             put("checked", 0)
         }
 
-        return writableDatabase.insert("task", null, values)
+        writableDatabase.insert("task", null, values)
+        log("Added task: $name")
     }
 
     fun deleteOldTasks(){
@@ -299,6 +302,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         val dateIdx =  if (data.getColumnIndex("dayOfAccess") >= 0) data.getColumnIndex("dayOfAccess") else 0
         while(data.moveToNext()){
             dayValue = data.getString(dateIdx)
+            // one cycle only
         }
 
         data.close()
@@ -308,4 +312,12 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         return dayValue
     }
 
+    private fun isTaskAlreadyScheduled(name: String, day: String): Boolean{
+        val countOfTasks = DatabaseUtils.queryNumEntries(readableDatabase, "task", "name = ? AND day = ?", arrayOf(name, day.replace("/", "-")))
+
+        log("Count: $countOfTasks")
+        log("Name: $name, date: $day")
+
+        return countOfTasks > 0
+    }
 }
