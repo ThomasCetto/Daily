@@ -73,7 +73,6 @@ class MainActivity : ComponentActivity() {
         helper.deleteOldTasks()
         helper.addRepeatables() // of the day
 
-        log("START DB RECORDS_____")
         log("Task names: " + helper.getTaskNames().toString())
         log("Repeatable names: " + helper.getRepNames().toString())
 
@@ -376,16 +375,15 @@ fun DateSelector() {
     mCalendar.time = Date()
 
     // Date in string format
-    val mDate = remember { mutableStateOf(Dates().getTodaysDateSlash()) }
+    val mDate = remember { mutableStateOf(Dates().getTodaysDate()) }
 
     // Creating dialog
     val mDatePickerDialog = DatePickerDialog(
         mContext,
         { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
-            mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
+            mDate.value = "$mYear-${mMonth + 1}-$mDayOfMonth"
         }, mYear, mMonth, mDay
     )
-
 
     Text(text = "Giorno      " + Dates().convertDate(mDate.value, "dd/MM/yyyy"))
     // Button that opens the dialog
