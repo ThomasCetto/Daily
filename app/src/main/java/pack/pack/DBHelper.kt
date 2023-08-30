@@ -132,8 +132,10 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
     fun getRepNames(): ArrayList<String>{
         val strings: ArrayList<String> = getRepRowStrings()
         val outList = ArrayList<String>()
+
         for (string in strings){
-            outList.add(string.split("name: ")[1].split(", day: ")[0])
+        for (string in strings)
+            outList.add((string.split("name: ")[1].split(", dayOfWeek: "))[0])
         }
         return outList
     }
@@ -148,6 +150,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
 
     fun getTodaysTaskInfo(): ArrayList<HashMap<String,String>> {
         val info = ArrayList<HashMap<String, String>>()
+        val alreadyGot = HashSet<String>()
 
         val cursor: Cursor = getAllRowsForToday()
 
@@ -159,10 +162,17 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         if (nameIndex >= 0 && importanceIndex >= 0 && checkedIndex >= 0) {
             while (cursor.moveToNext()) {
                 val rowInfo = HashMap<String, String>()
+
                 rowInfo["id"] = cursor.getInt(idIndex).toString()
                 rowInfo["name"] = cursor.getString(nameIndex)
                 rowInfo["important"] = cursor.getInt(importanceIndex).toString()
                 rowInfo["checked"] = cursor.getInt(checkedIndex).toString()
+
+                // only add once tasks with the same name
+                if (alreadyGot.contains(rowInfo["name"]))
+                    continue
+                else
+                    alreadyGot.add(rowInfo["name"] ?: "Something went wronk, but here is your task")
 
                 info.add(rowInfo)
             }
@@ -231,9 +241,6 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
             put("checked", 0)
         }
 
-        log("trying to add task with name: $name, day: $day, importance: $importance")
-        log("DB before: " + getRowStrings())
-
         return writableDatabase.insert("task", null, values)
     }
 
@@ -251,20 +258,14 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         // Searches for repetitiveTasks that are scheduled for the current day of week or month.
         // Then inserts new tasks for each of these tasks for today's day
 
-        log("Start of addRepeatables")
-
         val date = Dates()
         val idxInWeek = date.getDayOfWeekIndex()
         val idxInMonth = date.getDayOfMonth()
-
-        log("idxInWeek: $idxInWeek, idxInMonth: $idxInMonth")
 
         val data = readableDatabase.query("repetitive", null, "dayOfWeek = $idxInWeek OR dayOfMonth = $idxInMonth", null, null, null, null)
 
         // get name column index
         val nameIdx =  if (data.getColumnIndex("name") >= 0) data.getColumnIndex("name") else 0
-
-        log("nameIDx: $nameIdx")
 
         // for each row adds a new task
         while(data.moveToNext()){
@@ -281,15 +282,13 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         }
 
         data.close()
-        log("End of addRepeatables")
     }
 
     private fun saveTodaysDate(){
         val db = writableDatabase
-        db.execSQL(
-            "UPDATE stats " +
-                "SET dayOfAccess = " + Dates().getTodaysDate()
-        )
+
+        val updateQuery = "UPDATE stats SET dayOfAccess = ?"
+        db.execSQL(updateQuery, arrayOf(Dates().getTodaysDate()))
         db.close()
     }
 

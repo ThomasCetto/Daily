@@ -67,19 +67,21 @@ class MainActivity : ComponentActivity() {
 
         val helper = DBHelper(applicationContext)
 
-        // deletes and it will re-create
-        helper.deleteDB()
+        // deletes and it will re-create the database
+        //helper.deleteDB()
 
         helper.deleteOldTasks()
 
+        log("Last access: ${helper.getLastAccessDay()}")
+
         // adds repetitive tasks only if it's the first access of the day
-        if (!Dates().dateIsTodaysDate(helper.getLastAccessDay())) {
+        if (true) {
             helper.addRepeatables()
         }
 
         log("START DB RECORDS_____")
-        log(helper.getTaskNames().toString())
-        log(helper.getRepNames().toString())
+        log("Task names: " + helper.getTaskNames().toString())
+        log("Repeatable names: " + helper.getRepNames().toString())
 
 
         setContent {
@@ -152,7 +154,6 @@ fun AddScreen(appCont: Context) {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
-            log("AGGIUNGI TASK")
         }
 
         RowWithVerticalAlignment { NameField() }
@@ -399,7 +400,6 @@ fun DateSelector() {
 
 
     Text(text = "Giorno      " + Dates().convertDate(mDate.value, "dd/MM/yyyy"))
-    log("Data format: ${mDate.value}")
     // Button that opens the dialog
     Button(
         onClick = {
@@ -414,7 +414,6 @@ fun DateSelector() {
         Text(text = "Scegli", color = Color.White)
     }
     taskDay = mDate.value
-    log("Data scelta: ${mDate.value}")
 }
 
 @Composable
@@ -444,7 +443,6 @@ fun ImportanceSelector() {
         onCheckedChange = { isChecked = it }
     )
     taskImportance = if (isChecked) 1 else 0
-    log("Is checked; $isChecked")
 }
 
 @Composable
@@ -461,7 +459,7 @@ fun ConfirmationButton(context: Context) {
                 DBHelper(context).insertTask(taskName, taskDay, taskImportance)
             }
 
-            log("La task è stata aggiunta con successo")
+            log("Aggiunta task: $taskName")
         } catch (ex: Exception) {
             log("La task non è stata aggiunta a causa di un errore: " + ex.message + ex.stackTraceToString())
         }
@@ -477,7 +475,5 @@ fun resetInsertionData(taskRepet: Boolean, isDoW: Boolean? = null){
     isDayOfWeek = isDoW ?: isDayOfWeek
     daysOfWeekChosen = List(7){false}
     dayOfMonthChosen = -1
-
-    log("Reset made with taskRepetition: $taskRepet, idDoW: $isDoW")
 
 }
