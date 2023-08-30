@@ -71,13 +71,7 @@ class MainActivity : ComponentActivity() {
         //helper.deleteDB()
 
         helper.deleteOldTasks()
-
-        log("Last access: ${helper.getLastAccessDay()}")
-
-        // adds repetitive tasks only if it's the first access of the day
-        if (true) {
-            helper.addRepeatables()
-        }
+        helper.addRepeatables() // of the day
 
         log("START DB RECORDS_____")
         log("Task names: " + helper.getTaskNames().toString())

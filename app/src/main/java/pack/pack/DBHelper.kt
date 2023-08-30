@@ -231,6 +231,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
             log("Added rep task with name: $name, in day of the month: $dayOfMonth")
         }
 
+        addRepeatables() // adds the task right now if it's scheduleded also for today
     }
 
     fun insertTask(name: String, day: String, importance: Int): Long{
