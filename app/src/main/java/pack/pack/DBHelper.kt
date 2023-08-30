@@ -245,17 +245,15 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         }
 
         writableDatabase.insert("task", null, values)
+
+        log("DB NOW: " + getTaskNames())
+
         log("Added task: $name")
     }
 
     fun deleteOldTasks(){
         log("todays date: " + Dates().getTodaysDate())
         writableDatabase.delete("task", "day < ?", arrayOf(Dates().getTodaysDate()))
-    }
-
-    fun getAllRepeatableTasks(): Cursor{
-        val db = readableDatabase
-        return db.query("repetitive", null, "", null, null, null, null)
     }
 
     fun addRepeatables(){
@@ -266,23 +264,17 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         val idxInWeek = date.getDayOfWeekIndex()
         val idxInMonth = date.getDayOfMonth()
 
-        val data = readableDatabase.query("repetitive", null, "dayOfWeek = $idxInWeek OR dayOfMonth = $idxInMonth", null, null, null, null)
-
-        // get name column index
+        val data = readableDatabase.query(
+            "repetitive", null,
+            "dayOfWeek = $idxInWeek OR dayOfMonth = $idxInMonth",
+            null, null, null, null
+        )
         val nameIdx =  if (data.getColumnIndex("name") >= 0) data.getColumnIndex("name") else 0
 
         // for each row adds a new task
         while(data.moveToNext()){
-            val nameValue = data.getString(nameIdx)
-
-            val contentValues = ContentValues().apply {
-                put("name", nameValue)
-                put("day", date.getTodaysDate())
-                put("important", 0)
-                put("checked", 0)
-            }
-            writableDatabase.insert("task", null, contentValues)
-            log("Aggiunta nuova task: $nameValue")
+            val taskName = data.getString(nameIdx)
+            insertTask(taskName, date.getTodaysDate(), 0)
         }
 
         data.close()
@@ -296,21 +288,6 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         db.close()
     }
 
-    fun getLastAccessDay(): String{
-        val data = readableDatabase.query("stats", null, null, null, null, null, null)
-        var dayValue = ""
-        val dateIdx =  if (data.getColumnIndex("dayOfAccess") >= 0) data.getColumnIndex("dayOfAccess") else 0
-        while(data.moveToNext()){
-            dayValue = data.getString(dateIdx)
-            // one cycle only
-        }
-
-        data.close()
-
-        // saves today's date in the database as the most recent
-        saveTodaysDate()
-        return dayValue
-    }
 
     private fun isTaskAlreadyScheduled(name: String, day: String): Boolean{
         val countOfTasks = DatabaseUtils.queryNumEntries(readableDatabase, "task", "name = ? AND day = ?", arrayOf(name, day.replace("/", "-")))

@@ -160,11 +160,9 @@ fun AddScreen(appCont: Context) {
             RowWithVerticalAlignment { DayOfWeekOrMonth() } // day of month or week switch
 
             if (isDayOfWeek) {
-                log("cuaii")
                 resetInsertionData(taskRepet = true, isDoW = true)
                 RowWithVerticalAlignment { DayOfWeekSelector() }
             } else {
-                log("eueueueue")
                 resetInsertionData(taskRepet = true, isDoW = false)
                 RowWithVerticalAlignment { DayOfMonthSelector() }
             }
@@ -208,8 +206,6 @@ fun NumberPicker(
         valueRange = minValue.toFloat()..maxValue.toFloat(),
         steps = maxValue - minValue
     )
-
-    log("Slider value: $dayOfMonthChosen")
 }
 
 @Composable
@@ -234,7 +230,6 @@ fun DayOfWeekSelector() {
         }
     }
     daysOfWeekChosen = checkedStates
-    log("Days of week values: $daysOfWeekChosen")
 }
 
 @Composable
@@ -266,7 +261,6 @@ fun TaskSchedulingChooser() {
         }
     )
     taskRepetition = checked
-    log("Task repetition changed to $taskRepetition")
 }
 
 @Composable
