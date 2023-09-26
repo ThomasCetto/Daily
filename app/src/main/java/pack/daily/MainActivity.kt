@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
         //helper.deleteDB()
 
         helper.deleteOldTasks()
-        helper.addRepeatables() // of the day
+        helper.addRepeatablesToTodaysTasks() // of the day
 
         log("Task names: " + helper.getTaskNames().toString())
         log("Repeatable names: " + helper.getRepNames().toString())
@@ -237,7 +237,6 @@ fun DayOfWeekOrMonth() {
     Text(text = "     gg settimana")
 
     isDayOfWeek = checked
-    log("isDayOfWeek changed to $isDayOfWeek")
 }
 
 @Composable
@@ -360,9 +359,9 @@ fun DateSelector() {
     val mCalendar = Calendar.getInstance()
 
     // Fetching current year, month and day
-    val mYear = mCalendar.get(Calendar.YEAR)
-    val mMonth = mCalendar.get(Calendar.MONTH)
-    val mDay = mCalendar.get(Calendar.DAY_OF_MONTH)
+    val year = mCalendar.get(Calendar.YEAR)
+    val month = mCalendar.get(Calendar.MONTH)
+    val day = mCalendar.get(Calendar.DAY_OF_MONTH)
 
     mCalendar.time = Date()
 
@@ -374,7 +373,7 @@ fun DateSelector() {
         mContext,
         { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
             mDate.value = "$mYear-${mMonth + 1}-$mDayOfMonth"
-        }, mYear, mMonth, mDay
+        }, year, month, day
     )
 
     Text(text = "Giorno      " + Dates().convertDate(mDate.value, "dd/MM/yyyy"))
@@ -424,7 +423,7 @@ fun ImportanceSelector() {
 
 @Composable
 fun ConfirmationButton(context: Context) {
-    Button(enabled = !taskName.isNullOrBlank(), // if it has a name it's enabled
+    Button(enabled = taskName.isNotBlank(), // if it has a name it's enabled
         onClick = {
         try {
             if (taskName == "" || taskName == " ")
@@ -458,6 +457,5 @@ fun resetInsertionData(taskRepet: Boolean, isDoW: Boolean? = null, deleteName: B
     if(deleteName){
         taskNameState = TextFieldValue("")
         taskName = ""
-        log("Name deleted");
     }
 }

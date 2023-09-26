@@ -134,10 +134,9 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         val strings: ArrayList<String> = getRepRowStrings()
         val outList = ArrayList<String>()
 
-        for (string in strings){
         for (string in strings)
             outList.add((string.split("name: ")[1].split(", dayOfWeek: "))[0])
-        }
+
         return outList
     }
 
@@ -222,10 +221,10 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
                 put("dayOfMonth", dayOfMonth)
             }
             writableDatabase.insert("repetitive", null, values)
-            log("Added repeatable task with name: $name, in day of the month: $dayOfMonth")
+            log("Added repetitive task with name: $name, in day of the month: $dayOfMonth")
         }
 
-        addRepeatables() // adds the task right now if it's scheduled also for today
+        addRepeatablesToTodaysTasks() // adds the task right now if it's scheduled also for today
     }
 
     fun insertTask(name: String, day: String, importance: Int){
@@ -246,17 +245,15 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
 
         writableDatabase.insert("task", null, values)
 
-        log("DB NOW: " + getTaskNames())
-
         log("Added task: $name")
     }
 
     fun deleteOldTasks(){
-        log("todays date: " + Dates().getTodaysDate())
+        // if the task has already been display for that day
         writableDatabase.delete("task", "day < ?", arrayOf(Dates().getTodaysDate()))
     }
 
-    fun addRepeatables(){
+    fun addRepeatablesToTodaysTasks(){
         // Searches for repetitiveTasks that are scheduled for the current day of week or month.
         // Then inserts new tasks for each of these tasks for today's day
 
@@ -280,20 +277,10 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         data.close()
     }
 
-    private fun saveTodaysDate(){
-        val db = writableDatabase
-
-        val updateQuery = "UPDATE stats SET dayOfAccess = ?"
-        db.execSQL(updateQuery, arrayOf(Dates().getTodaysDate()))
-        db.close()
-    }
-
-
     private fun isTaskAlreadyScheduled(name: String, day: String): Boolean{
         val countOfTasks = DatabaseUtils.queryNumEntries(readableDatabase, "task", "name = ? AND day = ?", arrayOf(name, day.replace("/", "-")))
 
-        log("Count: $countOfTasks")
-        log("Name: $name, date: $day")
+        log("This task was already scheduled $countOfTasks times")
 
         return countOfTasks > 0
     }

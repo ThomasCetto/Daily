@@ -32,8 +32,6 @@ class Dates {
     fun convertDate(inputDate: String, outFormat: String = "yyyy-MM-dd"): String {
         // from dd-MM-yyyy, dd/MM/yyyy, yyyy/MM/dd, etc. format to the specified output format
 
-
-
         val divider = if(inputDate.contains("/")) "/" else "-"
         val split = inputDate.split(divider)
 
@@ -62,10 +60,4 @@ class Dates {
         return LocalDate.now().dayOfMonth
     }
 
-    fun dateIsTodaysDate(date: String): Boolean{
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val dateToCheck = LocalDate.parse(date, formatter)
-        val currentDate = LocalDate.now()
-        return dateToCheck == currentDate
-    }
 }
