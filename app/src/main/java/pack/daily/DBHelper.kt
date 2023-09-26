@@ -1,4 +1,4 @@
-package pack.pack
+package pack.daily
 
 import android.content.ContentValues
 import android.content.Context

@@ -1,4 +1,4 @@
-package pack.pack
+package pack.daily
 
 import org.junit.Test
 

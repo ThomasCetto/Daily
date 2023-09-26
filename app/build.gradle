@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'pack.pack'
+    namespace 'pack.daily'
     compileSdk 34
 
     defaultConfig {
-        applicationId "pack.pack"
+        applicationId "pack.daily"
         minSdk 26
         targetSdk 34
         versionCode 1
@@ -64,15 +64,15 @@ dependencies {
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
-    implementation "androidx.navigation:navigation-fragment-ktx:2.7.0"
-    implementation "androidx.navigation:navigation-ui-ktx:2.7.0"
+    implementation "androidx.navigation:navigation-fragment-ktx:2.7.1"
+    implementation "androidx.navigation:navigation-ui-ktx:2.7.1"
     implementation "androidx.compose.ui:ui:1.5.0"
     implementation "androidx.compose.ui:ui-tooling:1.5.0"
     implementation "androidx.compose.material:material:1.5.0"
     implementation "androidx.compose.ui:ui-tooling-preview:1.5.0"
-    implementation "androidx.navigation:navigation-compose:2.7.0"
+    implementation "androidx.navigation:navigation-compose:2.7.1"
     implementation "androidx.compose.ui:ui:1.5.0"
-    implementation "androidx.navigation:navigation-compose:2.7.0"
+    implementation "androidx.navigation:navigation-compose:2.7.1"
     implementation "androidx.compose.ui:ui:1.5.0"
     implementation "androidx.compose.material:material:1.5.0"
 

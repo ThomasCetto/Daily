@@ -1,4 +1,4 @@
-package pack.pack
+package pack.daily
 
 import java.text.SimpleDateFormat
 import java.time.LocalDate

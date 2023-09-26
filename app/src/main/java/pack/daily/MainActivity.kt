@@ -1,4 +1,4 @@
-package pack.pack
+package pack.daily
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
@@ -28,7 +28,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import pack.pack.ui.theme.DailyTheme
+import pack.daily.ui.theme.DailyTheme
 import androidx.navigation.compose.composable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -50,6 +50,7 @@ import java.util.Date
 import androidx.compose.ui.platform.LocalContext
 
 
+var taskNameState by mutableStateOf(TextFieldValue())
 var taskName: String by mutableStateOf("")
 var taskDay: String by mutableStateOf("")
 var taskImportance: Int by mutableIntStateOf(0)
@@ -151,25 +152,17 @@ fun AddScreen(appCont: Context) {
         RowWithVerticalAlignment { NameField() }
 
         // type of task scheduling chooser
-        RowWithVerticalAlignment { TaskSchedulingChooser() } // repetition or not switch
+        resetInsertionData(taskRepet = taskRepetition, isDoW = isDayOfWeek, deleteName = false)
 
+        RowWithVerticalAlignment { TaskSchedulingChooser() } // repetition or not switch
         if (taskRepetition) {
-            resetInsertionData(taskRepet = true, isDoW = null)
             RowWithVerticalAlignment { DayOfWeekOrMonth() } // day of month or week switch
 
-            if (isDayOfWeek) {
-                resetInsertionData(taskRepet = true, isDoW = true)
-                RowWithVerticalAlignment { DayOfWeekSelector() }
-            } else {
-                resetInsertionData(taskRepet = true, isDoW = false)
-                RowWithVerticalAlignment { DayOfMonthSelector() }
-            }
+            RowWithVerticalAlignment { if (isDayOfWeek) DayOfWeekSelector() else DayOfMonthSelector() }
         } else {
-            resetInsertionData(taskRepet = false, isDoW = false)
             RowWithVerticalAlignment { DateSelector() }
             RowWithVerticalAlignment { ImportanceSelector() }
         }
-
         RowWithVerticalAlignment { ConfirmationButton(appCont) }
     }
 }
@@ -404,10 +397,9 @@ fun DateSelector() {
 @Composable
 fun NameField() {
     Text(text = "Nome task")
-    var textState by remember { mutableStateOf(TextFieldValue()) }
     BasicTextField(
-        value = textState,
-        onValueChange = { textState = it },
+        value = taskNameState,
+        onValueChange = { taskNameState = it },
         textStyle = TextStyle(fontSize = 16.sp, color = Color.White),
         modifier = Modifier
             .padding(16.dp)
@@ -416,7 +408,7 @@ fun NameField() {
             .border(1.dp, Color.Gray, shape = MaterialTheme.shapes.small)
     )
 
-    taskName = textState.text
+    taskName = taskNameState.text
 }
 
 @Composable
@@ -444,6 +436,10 @@ fun ConfirmationButton(context: Context) {
                 DBHelper(context).insertTask(taskName, taskDay, taskImportance)
             }
 
+            /*reset everything so the user understands that the previous one was confirmed
+                successfully and that he can insert another one*/
+            resetInsertionData(taskRepet = false, isDoW = false, deleteName = true)
+
         } catch (ex: Exception) {
             log("La task non è stata aggiunta a causa di un errore: " + ex.message + ex.stackTraceToString())
         }
@@ -452,12 +448,16 @@ fun ConfirmationButton(context: Context) {
     }
 }
 
-fun resetInsertionData(taskRepet: Boolean, isDoW: Boolean? = null){
+fun resetInsertionData(taskRepet: Boolean, isDoW: Boolean? = null, deleteName: Boolean = false){
     taskDay = Dates().getTodaysDateSlash()
     taskImportance = 0
     taskRepetition = taskRepet
-    isDayOfWeek = isDoW ?: isDayOfWeek
+    isDayOfWeek = isDoW ?: isDayOfWeek  // if null it stays the same
     daysOfWeekChosen = List(7){false}
     dayOfMonthChosen = -1
-
+    if(deleteName){
+        taskNameState = TextFieldValue("")
+        taskName = ""
+        log("Name deleted");
+    }
 }
