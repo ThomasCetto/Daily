@@ -1,6 +1,5 @@
 package pack.daily
 
-import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Bundle
@@ -59,23 +58,14 @@ var isDayOfWeek: Boolean by mutableStateOf(false)
 var daysOfWeekChosen: List<Boolean> by mutableStateOf(List(7) { false })
 var dayOfMonthChosen: Int by mutableIntStateOf(-1)
 
+const val DB_HAS_TO_BE_DELETED = false
+
 class MainActivity : ComponentActivity() {
-    @SuppressLint("SetTextI18n")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        log("APP STARTED")
 
-        val helper = DBHelper(applicationContext)
-
-        // deletes and it will re-create the database
-        //helper.deleteDB()
-
-        helper.deleteOldTasks()
-        helper.addRepeatablesToTodaysTasks() // of the day
-
-        log("Task names: " + helper.getTaskNames().toString())
-        log("Repeatable names: " + helper.getRepNames().toString())
-
+        appStartupActions(applicationContext)
 
         setContent {
             DailyTheme {
@@ -98,33 +88,38 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+fun appStartupActions(applicationContext: Context) {
+    log("APP STARTED")
+
+    val helper = DBHelper(applicationContext)
+
+    if (DB_HAS_TO_BE_DELETED)
+        helper.deleteDB()
+
+    helper.deleteOldTasks()
+    helper.addRepeatablesToTodaysTasks()
+
+    log("Task names: " + helper.getTaskNames().toString())
+    log("Repeatable names: " + helper.getRepNames().toString())
+}
+
 @Composable
 fun HomeScreen(appCont: Context) {
-    val defMod = Modifier
-        .fillMaxWidth()
-        .padding(8.dp)
     Column(
-        modifier = defMod
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
     ) {
-        Row(
-            modifier = defMod,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = Dates().getTodaysCoolDate() + "\n\n TO-DO LIST",
-                style = TextStyle(fontSize = 24.sp),
-                textAlign = TextAlign.Center, // Center the text horizontally
-                modifier = Modifier.fillMaxWidth() // Expand the width to the full available width
-            )
-        }
-        Row(
-            modifier = defMod,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            CheckBoxList(appCont)
-        }
+        Text(
+            text = Dates().getTodaysCoolDate() + "\n\n TO-DO LIST",
+            style = TextStyle(fontSize = 24.sp),
+            textAlign = TextAlign.Center, // Center the text horizontally
+            modifier = Modifier.fillMaxWidth() // Expand the width to the full available width
+        )
+        CheckBoxList(appCont)
     }
 }
+
 
 @Composable
 fun SearchScreen() {
@@ -140,54 +135,48 @@ fun AddScreen(appCont: Context) {
     Column(
         modifier = defMod.verticalScroll(ScrollState(0))
     ) {
-        RowWithVerticalAlignment {
-            Text(
-                text = "AGGIUNGI TASK",
-                style = TextStyle(fontSize = 24.sp),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
+        Text(
+            text = "AGGIUNGI TASK",
+            style = TextStyle(fontSize = 24.sp),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+        NameField()
 
-        RowWithVerticalAlignment { NameField() }
-
-        // type of task scheduling chooser
+        // every time that the page is loaded or a switch gets pressed it resets the unnecessary data
         resetInsertionData(taskRepet = taskRepetition, isDoW = isDayOfWeek, deleteName = false)
 
-        RowWithVerticalAlignment { TaskSchedulingChooser() } // repetition or not switch
+        // type of task scheduling chooser
+        TaskSchedulingChooser() // repetition or not switch
         if (taskRepetition) {
-            RowWithVerticalAlignment { DayOfWeekOrMonth() } // day of month or week switch
-
-            RowWithVerticalAlignment { if (isDayOfWeek) DayOfWeekSelector() else DayOfMonthSelector() }
+            DayOfWeekOrMonth() // day of month or week switch
+            if (isDayOfWeek) DayOfWeekSelector() else DayOfMonthSelector()
         } else {
-            RowWithVerticalAlignment { DateSelector() }
-            RowWithVerticalAlignment { ImportanceSelector() }
+            DateSelector()
+            ImportanceSelector()
         }
-        RowWithVerticalAlignment { ConfirmationButton(appCont) }
+        ConfirmationButton(appCont)
     }
 }
 
 @Composable
 fun DayOfMonthSelector() {
-    var selectedValue by remember { mutableIntStateOf(1) }
+    RowWithVerticalAlignment {
+        var selectedValue by remember { mutableIntStateOf(1) }
 
-    Text("Giorno: $selectedValue")
-
-    NumberPicker(
-        onValueChange = { newValue ->
-            selectedValue = newValue
-        },
-        minValue = 1,
-        maxValue = 31
-    )
+        Text("Giorno: $selectedValue")
+        NumberPicker(
+            onValueChange = { newValue ->
+                selectedValue = newValue
+            },
+            minValue = 1,
+            maxValue = 31
+        )
+    }
 }
 
 @Composable
-fun NumberPicker(
-    onValueChange: (Int) -> Unit,
-    minValue: Int,
-    maxValue: Int
-) {
+fun NumberPicker(onValueChange: (Int) -> Unit, minValue: Int, maxValue: Int) {
     Slider(
         value = dayOfMonthChosen.toFloat(),
         onValueChange = { newValue ->
@@ -201,68 +190,66 @@ fun NumberPicker(
 
 @Composable
 fun DayOfWeekSelector() {
-    var checkedStates by remember { mutableStateOf(List(7) { false }) }
-    val daysOfWeek =
-        arrayOf("Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica")
+        var checkedStates by remember { mutableStateOf(List(7) { false }) }
+        val daysOfWeek = arrayOf("Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica")
 
-    Column {
-        for (index in 0 until 7) {
-            Row {
-                Text(text = daysOfWeek[index])
-                Checkbox(
-                    checked = checkedStates[index],
-                    onCheckedChange = { isChecked ->
-                        checkedStates = checkedStates.toMutableList().also {
-                            it[index] = isChecked
+        Column {
+            for (index in 0 until 7) {
+                RowWithVerticalAlignment {
+                    Text(text = daysOfWeek[index])
+                    Checkbox(
+                        checked = checkedStates[index],
+                        onCheckedChange = { isChecked ->
+                            checkedStates = checkedStates.toMutableList().also {
+                                it[index] = isChecked
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
-    }
-    daysOfWeekChosen = checkedStates
+        daysOfWeekChosen = checkedStates
 }
 
 @Composable
 fun DayOfWeekOrMonth() {
-    Text(text = "gg mese     ")
-    var checked by remember { mutableStateOf(false) }
+    RowWithVerticalAlignment {
+        Text(text = "gg mese     ")
+        var checked by remember { mutableStateOf(false) }
 
-    Switch(
-        checked = checked,
-        onCheckedChange = {
-            checked = it
-        }
-    )
-    Text(text = "     gg settimana")
-
-    isDayOfWeek = checked
+        Switch(
+            checked = checked,
+            onCheckedChange = {
+                checked = it
+            }
+        )
+        Text(text = "     gg settimana")
+        isDayOfWeek = checked
+    }
 }
 
 @Composable
 fun TaskSchedulingChooser() {
-    Text(text = "Task a ripetizione   ")
-    var checked by remember { mutableStateOf(false) }
+    RowWithVerticalAlignment {
+        Text(text = "Task a ripetizione   ")
+        var checked by remember { mutableStateOf(false) }
 
-    Switch(
-        checked = checked,
-        onCheckedChange = {
-            checked = it
-        }
-    )
-    taskRepetition = checked
+        Switch(
+            checked = checked,
+            onCheckedChange = {
+                checked = it
+            }
+        )
+        taskRepetition = checked
+    }
 }
 
 @Composable
-fun RowWithVerticalAlignment(
-    content: @Composable RowScope.() -> Unit
-) {
-    val verticalAlignmentMod = Modifier
-        .fillMaxWidth()
-        .padding(8.dp)
-
+fun RowWithVerticalAlignment(content: @Composable RowScope.() -> Unit) {
     Row(
-        modifier = verticalAlignmentMod,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         content = content
     )
@@ -328,7 +315,6 @@ fun CheckBoxList(appCont: Context) {
                     .background(if (isChecked) Color.Green else (if (row["important"] == "1") Color.Red else Color.Transparent)),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Checkbox(
                     checked = isChecked,
                     onCheckedChange = { newChecked ->
@@ -345,116 +331,124 @@ fun CheckBoxList(appCont: Context) {
                     modifier = Modifier
                         .background(if (isChecked) Color.Green else (if (row["important"] == "1") Color.Red else Color.Transparent))
                 )
-                Text(text = row["name"] ?: "Errore")
+                Text(text = row["name"] ?: "Errore")  // shows the task name
             }
-
         })
     }
-
 }
 
 @Composable
 fun DateSelector() {
-    val mContext = LocalContext.current
-    val mCalendar = Calendar.getInstance()
+    RowWithVerticalAlignment {
+        val mContext = LocalContext.current
+        val mCalendar = Calendar.getInstance()
 
-    // Fetching current year, month and day
-    val year = mCalendar.get(Calendar.YEAR)
-    val month = mCalendar.get(Calendar.MONTH)
-    val day = mCalendar.get(Calendar.DAY_OF_MONTH)
+        // Fetching current year, month and day
+        val year = mCalendar.get(Calendar.YEAR)
+        val month = mCalendar.get(Calendar.MONTH)
+        val day = mCalendar.get(Calendar.DAY_OF_MONTH)
 
-    mCalendar.time = Date()
+        mCalendar.time = Date()
 
-    // Date in string format
-    val mDate = remember { mutableStateOf(Dates().getTodaysDate()) }
+        // Date in string format
+        val mDate = remember { mutableStateOf(Dates().getTodaysDate()) }
 
-    // Creating dialog
-    val mDatePickerDialog = DatePickerDialog(
-        mContext,
-        { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
-            mDate.value = "$mYear-${mMonth + 1}-$mDayOfMonth"
-        }, year, month, day
-    )
+        // Creating dialog
+        val mDatePickerDialog = DatePickerDialog(
+            mContext,
+            { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
+                mDate.value = "$mYear-${mMonth + 1}-$mDayOfMonth"
+            }, year, month, day
+        )
 
-    Text(text = "Giorno      " + Dates().convertDate(mDate.value, "dd/MM/yyyy"))
-    // Button that opens the dialog
-    Button(
-        onClick = {
-            mDatePickerDialog.show()
-        },
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
-            .height(56.dp)
-            .wrapContentSize(Alignment.Center)
-    ) {
-        Text(text = "Scegli", color = Color.White)
+        Text(text = "Giorno      " + Dates().convertDate(mDate.value, "dd/MM/yyyy"))
+        // Button that opens the dialog
+        Button(
+            onClick = {
+                mDatePickerDialog.show()
+            },
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .height(56.dp)
+                .wrapContentSize(Alignment.Center)
+        ) {
+            Text(text = "Scegli", color = Color.White)
+        }
+        taskDay = mDate.value
     }
-    taskDay = mDate.value
 }
 
 @Composable
 fun NameField() {
-    Text(text = "Nome task")
-    BasicTextField(
-        value = taskNameState,
-        onValueChange = { taskNameState = it },
-        textStyle = TextStyle(fontSize = 16.sp, color = Color.White),
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()
-            .height(56.dp)
-            .border(1.dp, Color.Gray, shape = MaterialTheme.shapes.small)
-    )
+    RowWithVerticalAlignment {
+        Text(text = "Nome task")
+        BasicTextField(
+            value = taskNameState,
+            onValueChange = { taskNameState = it },
+            textStyle = TextStyle(fontSize = 16.sp, color = Color.White),
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .height(56.dp)
+                .border(1.dp, Color.Gray, shape = MaterialTheme.shapes.small)
+        )
 
-    taskName = taskNameState.text
+        taskName = taskNameState.text
+    }
 }
 
 @Composable
 fun ImportanceSelector() {
-    var isChecked by remember { mutableStateOf(false) }
-    Text(text = "Importante")
-    Checkbox(
-        checked = isChecked,
-        onCheckedChange = { isChecked = it }
-    )
-    taskImportance = if (isChecked) 1 else 0
+    RowWithVerticalAlignment {
+        var isChecked by remember { mutableStateOf(false) }
+        Text(text = "Importante")
+        Checkbox(
+            checked = isChecked,
+            onCheckedChange = { isChecked = it }
+        )
+        taskImportance = if (isChecked) 1 else 0
+    }
 }
 
 @Composable
 fun ConfirmationButton(context: Context) {
-    Button(enabled = taskName.isNotBlank(), // if it has a name it's enabled
-        onClick = {
-        try {
-            if (taskName == "" || taskName == " ")
-                throw Exception("la task non ha un nome e non verrà inserita\n")
+        Button(enabled = taskName.isNotBlank(), // if it has a name it's enabled
+            onClick = {
+                try {
+                    if (taskName == "" || taskName == " ")
+                        throw Exception("la task non ha un nome e non verrà inserita\n")
 
-            if (taskRepetition){
-                DBHelper(context).insertRepeatable(taskName, dayOfMonthChosen, daysOfWeekChosen)
-            }else {
-                DBHelper(context).insertTask(taskName, taskDay, taskImportance)
-            }
+                    if (taskRepetition) {
+                        DBHelper(context).insertRepeatable(
+                            taskName,
+                            dayOfMonthChosen,
+                            daysOfWeekChosen
+                        )
+                    } else {
+                        DBHelper(context).insertTask(taskName, taskDay, taskImportance)
+                    }
 
-            /*reset everything so the user understands that the previous one was confirmed
-                successfully and that he can insert another one*/
-            resetInsertionData(taskRepet = false, isDoW = false, deleteName = true)
+                    /*reset everything so the user understands that the previous one was confirmed
+                        successfully and that he can insert another one*/
+                    resetInsertionData(taskRepet = false, isDoW = false, deleteName = true)
 
-        } catch (ex: Exception) {
-            log("La task non è stata aggiunta a causa di un errore: " + ex.message + ex.stackTraceToString())
+                } catch (ex: Exception) {
+                    log("La task non è stata aggiunta a causa di un errore: " + ex.message + ex.stackTraceToString())
+                }
+            }) {
+            Text("Conferma")
         }
-    }) {
-        Text("Conferma")
-    }
 }
 
-fun resetInsertionData(taskRepet: Boolean, isDoW: Boolean? = null, deleteName: Boolean = false){
+fun resetInsertionData(taskRepet: Boolean, isDoW: Boolean? = null, deleteName: Boolean = false) {
     taskDay = Dates().getTodaysDateSlash()
     taskImportance = 0
     taskRepetition = taskRepet
     isDayOfWeek = isDoW ?: isDayOfWeek  // if null it stays the same
-    daysOfWeekChosen = List(7){false}
+    daysOfWeekChosen = List(7) { false }
     dayOfMonthChosen = -1
-    if(deleteName){
+    if (deleteName) {
         taskNameState = TextFieldValue("")
         taskName = ""
     }
