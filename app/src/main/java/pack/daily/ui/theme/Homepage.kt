@@ -1,6 +1,7 @@
 package pack.daily.ui.theme
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import pack.daily.DBHelper
 import pack.daily.Dates
-import pack.daily.log
 
 class Homepage {
 
@@ -79,5 +79,7 @@ class Homepage {
             })
         }
     }
-
+    private fun log(msg: String) {
+        Log.d("MainActivity", msg)
+    }
 }
