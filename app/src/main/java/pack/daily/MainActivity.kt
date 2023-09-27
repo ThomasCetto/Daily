@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import pack.daily.ui.theme.Addpage
 import pack.daily.ui.theme.Homepage
+import pack.daily.ui.theme.Searchpage
 
 
 const val DB_HAS_TO_BE_DELETED = false
@@ -52,7 +53,7 @@ class MainActivity : ComponentActivity() {
                     Box(modifier = Modifier.fillMaxWidth()) {
                         NavHost(navController, startDestination = "home") {
                             composable("home") { Homepage().HomeScreen(applicationContext) }
-                            composable("search") { SearchScreen() }
+                            composable("search") { Searchpage().SearchScreen(applicationContext) }
                             composable("add") { Addpage().AddScreen(applicationContext) }
                         }
                         BottomNavigationBar(navController, Modifier.align(Alignment.BottomCenter))
@@ -66,6 +67,11 @@ class MainActivity : ComponentActivity() {
 fun appStartupActions(applicationContext: Context) {
     log("APP STARTED")
 
+    val dbHelper = DBHelper(applicationContext)
+    val rows: ArrayList<String> = dbHelper.getRowStrings()
+
+
+
     val helper = DBHelper(applicationContext)
 
     if (DB_HAS_TO_BE_DELETED)
@@ -76,11 +82,6 @@ fun appStartupActions(applicationContext: Context) {
 
     log("Task names: " + helper.getTaskNames().toString())
     log("Repeatable names: " + helper.getRepNames().toString())
-}
-
-@Composable
-fun SearchScreen() {
-    // TODO: Add your search screen UI components here.
 }
 
 @Composable

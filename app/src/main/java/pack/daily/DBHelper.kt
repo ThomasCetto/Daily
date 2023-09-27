@@ -1,5 +1,6 @@
 package pack.daily
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
@@ -81,7 +82,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         Log.d("MainActivity", msg)
     }
 
-    private fun getRowStrings(): ArrayList<String>{
+    fun getRowStrings(): ArrayList<String>{
         val rows = ArrayList<String>()
 
         try {
@@ -284,4 +285,45 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
 
         return countOfTasks > 0
     }
+
+    @SuppressLint("Range")
+    fun getTasksData(): List<HashMap<String, String>> {
+        val taskList = ArrayList<HashMap<String, String>>()
+        val db = readableDatabase
+
+        val query = "SELECT * FROM task"
+        val cursor: Cursor = db.rawQuery(query, null)
+
+        if (cursor.moveToFirst()) {
+            do {
+                val taskMap = HashMap<String, String>()
+                taskMap["id"] = cursor.getString(cursor.getColumnIndex("id"))
+                taskMap["name"] = cursor.getString(cursor.getColumnIndex("name"))
+                taskMap["day"] = cursor.getString(cursor.getColumnIndex("day"))
+                taskMap["important"] = cursor.getString(cursor.getColumnIndex("important"))
+                taskMap["checked"] = cursor.getString(cursor.getColumnIndex("checked"))
+                taskList.add(taskMap)
+            } while (cursor.moveToNext())
+        }
+
+        cursor.close()
+        db.close()
+        return taskList
+    }
+
+
+
+    fun deleteTask(id: Int){
+        if (id == -1) return
+        writableDatabase.delete("task", "id = ?", arrayOf(id.toString()))
+        log("Deleted task with id: $id")
+    }
+
+    fun deleteRepetitive(id: Int){
+        if (id == -1) return
+        writableDatabase.delete("repetitive", "id = ?", arrayOf(id.toString()))
+        log("Deleted repeatable with id: $id")
+    }
+
+
 }
