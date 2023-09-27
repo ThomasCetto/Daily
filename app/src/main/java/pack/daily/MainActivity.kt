@@ -8,7 +8,6 @@ import android.widget.DatePicker
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.BottomNavigation
@@ -31,8 +30,6 @@ import pack.daily.ui.theme.DailyTheme
 import androidx.navigation.compose.composable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Add
@@ -47,6 +44,7 @@ import androidx.navigation.compose.NavHost
 import java.util.Calendar
 import java.util.Date
 import androidx.compose.ui.platform.LocalContext
+import pack.daily.ui.theme.Homepage
 
 
 var taskNameState by mutableStateOf(TextFieldValue())
@@ -76,7 +74,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     Box(modifier = Modifier.fillMaxWidth()) {
                         NavHost(navController, startDestination = "home") {
-                            composable("home") { HomeScreen(applicationContext) }
+                            composable("home") { Homepage().HomeScreen(applicationContext) }
                             composable("search") { SearchScreen() }
                             composable("add") { AddScreen(applicationContext) }
                         }
@@ -102,24 +100,6 @@ fun appStartupActions(applicationContext: Context) {
     log("Task names: " + helper.getTaskNames().toString())
     log("Repeatable names: " + helper.getRepNames().toString())
 }
-
-@Composable
-fun HomeScreen(appCont: Context) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Text(
-            text = Dates().getTodaysCoolDate() + "\n\n TO-DO LIST",
-            style = TextStyle(fontSize = 24.sp),
-            textAlign = TextAlign.Center, // Center the text horizontally
-            modifier = Modifier.fillMaxWidth() // Expand the width to the full available width
-        )
-        CheckBoxList(appCont)
-    }
-}
-
 
 @Composable
 fun SearchScreen() {
@@ -295,49 +275,6 @@ fun log(msg: String) {
 }
 
 @Composable
-fun CheckBoxList(appCont: Context) {
-    val dbHelper = DBHelper(appCont)
-    val rows: ArrayList<HashMap<String, String>> = dbHelper.getTodaysTaskInfo()
-
-    // lazyColumn makes scrolling possible
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        items(items = rows, itemContent = { row ->
-            var isChecked by remember { mutableStateOf(row["checked"].equals("1")) }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(6.dp)
-                    .background(if (isChecked) Color.Green else (if (row["important"] == "1") Color.Red else Color.Transparent)),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Checkbox(
-                    checked = isChecked,
-                    onCheckedChange = { newChecked ->
-                        try {
-                            isChecked = newChecked
-                            dbHelper.changeCheckID(
-                                Integer.parseInt(row["id"] ?: "-1"),
-                                if (newChecked) 1 else 0
-                            )
-                        } catch (e: Exception) {
-                            log(e.message ?: "errore nell errore")
-                        }
-                    },
-                    modifier = Modifier
-                        .background(if (isChecked) Color.Green else (if (row["important"] == "1") Color.Red else Color.Transparent))
-                )
-                Text(text = row["name"] ?: "Errore")  // shows the task name
-            }
-        })
-    }
-}
-
-@Composable
 fun DateSelector() {
     RowWithVerticalAlignment {
         val mContext = LocalContext.current
@@ -413,7 +350,7 @@ fun ImportanceSelector() {
 
 @Composable
 fun ConfirmationButton(context: Context) {
-        Button(enabled = taskName.isNotBlank(), // if it has a name it's enabled
+        Button(enabled = taskName.isNotBlank(), // if it has a name, it's enabled
             onClick = {
                 try {
                     if (taskName == "" || taskName == " ")
