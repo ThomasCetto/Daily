@@ -15,6 +15,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import pack.daily.DBHelper
+import androidx.compose.runtime.*
 
 class Searchpage {
 
@@ -63,34 +67,39 @@ class Searchpage {
     @Composable
     fun ListOfTasks(appCont: Context){
         val dbHelper = DBHelper(appCont)
-        val rows: List<HashMap<String, String>> = dbHelper.getTasksData()
+        var tasks by remember { mutableStateOf(dbHelper.getTasksData()) }
 
-        // lazyColumn makes scrolling possible
-        LazyColumn(modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)) {
-            items(items = rows, itemContent = { row ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            items(items = tasks) { task ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(6.dp)
-                        .background(if (row["important"] == "1") Color.Red else Color.Transparent),
+                        .background(if (task["important"] == "1") Color.Red else Color.Transparent),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = row["name"] ?: "Errore")  // shows the task name
+                    Text(text = task["name"] ?: "Errore")  // shows the task name
+
+                    // TODO: make the important task colored red, but not the complete row
 
                     Spacer(Modifier.width(15.dp))
 
                     Button(
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                         onClick = {
-                            DBHelper(appCont).deleteTask(Integer.parseInt(row["id"] ?: "-1"))
-                            }) {
+                            // Remove the task from the list and database
+                            dbHelper.deleteTask(Integer.parseInt(task["id"] ?: "-1"))
+                            tasks = tasks.filterNot { it == task }
+                        }
+                    ) {
                         Text("Elimina")
                     }
-
                 }
-            })
+            }
         }
 
 
