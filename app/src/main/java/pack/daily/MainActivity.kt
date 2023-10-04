@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -28,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.NavHost
 import pack.daily.ui.theme.Addpage
 import pack.daily.ui.theme.Homepage
@@ -65,12 +67,8 @@ class MainActivity : ComponentActivity() {
 }
 
 fun appStartupActions(applicationContext: Context) {
+    log("")
     log("APP STARTED")
-
-    val dbHelper = DBHelper(applicationContext)
-    val rows: ArrayList<String> = dbHelper.getRowStrings()
-
-
 
     val helper = DBHelper(applicationContext)
 
@@ -98,6 +96,7 @@ fun BottomNavigationBar(navController: NavController, modifier: Modifier) {
 
         items.forEach { item ->
             BottomNavigationItem(
+                modifier = Modifier.background(Color(android.graphics.Color.parseColor("#56ba49"))),
                 icon = { Icon(item.icon, contentDescription = item.label) },
                 label = { Text(item.label) },
                 selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,

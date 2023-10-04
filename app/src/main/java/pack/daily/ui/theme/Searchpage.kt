@@ -3,16 +3,24 @@ package pack.daily.ui.theme
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidthIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import pack.daily.DBHelper
 import androidx.compose.runtime.*
+import androidx.compose.ui.res.painterResource
 
 class Searchpage {
 
@@ -47,6 +56,8 @@ class Searchpage {
                 modifier = Modifier.fillMaxWidth() // Expand the width to the full available width
             )
 
+            ListOfRepeatables(appContext)
+
             Text(
                 text = "Task normali: ",
                 style = TextStyle(fontSize = 20.sp),
@@ -54,7 +65,6 @@ class Searchpage {
             )
 
             ListOfTasks(appContext)
-
         }
     }
 
@@ -76,19 +86,28 @@ class Searchpage {
         ) {
             items(items = tasks) { task ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(6.dp)
-                        .background(if (task["important"] == "1") Color.Red else Color.Transparent),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = task["name"] ?: "Errore")  // shows the task name
+                    Text(
+                        text = "${task["name"]}",
+                        modifier = Modifier.weight(1f)  // This will align the first Text to the left
+                    )
 
-                    // TODO: make the important task colored red, but not the complete row
 
-                    Spacer(Modifier.width(15.dp))
+                    Text(
+                        text = "${task["day"]}",
+                        modifier = Modifier.weight(1f)  // This will center the second Text
+                    )
+
+                    Spacer(modifier = Modifier.padding(end = 16.dp))
 
                     Button(
+                        modifier = Modifier
+                            .size(40.dp) // You can adjust the size as needed
+                            .padding(4.dp) // Add some padding to the Button
+                            .requiredWidthIn(min = 40.dp), // Set a minimum width for the Button
+                        contentPadding = PaddingValues(8.dp), // Add content padding for the text
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                         onClick = {
                             // Remove the task from the list and database
@@ -96,9 +115,14 @@ class Searchpage {
                             tasks = tasks.filterNot { it == task }
                         }
                     ) {
-                        Text("Elimina")
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
                     }
                 }
+
             }
         }
 

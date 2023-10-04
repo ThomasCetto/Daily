@@ -291,7 +291,7 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
         val taskList = ArrayList<HashMap<String, String>>()
         val db = readableDatabase
 
-        val query = "SELECT * FROM task"
+        val query = "SELECT * FROM task ORDER BY day"
         val cursor: Cursor = db.rawQuery(query, null)
 
         if (cursor.moveToFirst()) {

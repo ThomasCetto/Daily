@@ -88,8 +88,7 @@ class Addpage {
 
         Column {
             for (index in 0 until 7) {
-                RowWithVerticalAlignment {
-                    Text(text = daysOfWeek[index])
+                RowWithVerticalAlignment(modifier = Modifier.fillMaxWidth().padding(0.dp)) {
                     Checkbox(
                         checked = checkedStates[index],
                         onCheckedChange = { isChecked ->
@@ -98,6 +97,7 @@ class Addpage {
                             }
                         }
                     )
+                    Text(text = daysOfWeek[index])
                 }
             }
         }
@@ -288,9 +288,11 @@ class Addpage {
     }
 
     @Composable
-    fun RowWithVerticalAlignment(content: @Composable RowScope.() -> Unit) {
+    fun RowWithVerticalAlignment(modifier: Modifier = Modifier.fillMaxWidth().padding(8.dp),
+                                 content: @Composable RowScope.() -> Unit
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            modifier = modifier,
             verticalAlignment = Alignment.CenterVertically,
             content = content
         )
