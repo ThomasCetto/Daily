@@ -91,7 +91,7 @@ class Searchpage {
                 ) {
                     Text(
                         text = "${task["name"]}",
-                        modifier = Modifier.weight(1f)  // This will align the first Text to the left
+                        modifier = Modifier.weight(1f)  //This will align the first Text to the left
                     )
 
 
