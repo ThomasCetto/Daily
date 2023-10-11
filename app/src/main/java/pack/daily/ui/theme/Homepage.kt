@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,7 +48,7 @@ class Homepage {
         val rows: ArrayList<HashMap<String, String>> = dbHelper.getTodaysTaskInfo()
 
         // lazyColumn makes scrolling possible
-        LazyColumn(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+        LazyColumn(modifier = Modifier.fillMaxWidth().padding(16.dp).fillMaxHeight(fraction = 0.85F)) {
             items(items = rows, itemContent = { row ->
                 var isChecked by remember { mutableStateOf(row["checked"].equals("1")) }
 
@@ -79,6 +80,7 @@ class Homepage {
             })
         }
     }
+
     private fun log(msg: String) {
         Log.d("MainActivity", msg)
     }

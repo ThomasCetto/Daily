@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.foundation.layout.size
@@ -51,6 +53,7 @@ class Searchpage {
                 style = TextStyle(fontSize = 20.sp),
                 modifier = Modifier.fillMaxWidth()
             )
+
             ListOfTasks(appContext, ofRepeatables = false)
 
             Text(
@@ -75,6 +78,9 @@ class Searchpage {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
+                .fillMaxHeight(fraction = 0.33F)
+
+
         ) {
             items(items = tasks) { task ->
                 Row(
