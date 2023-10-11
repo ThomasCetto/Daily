@@ -2,8 +2,6 @@ package pack.daily.ui.theme
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,12 +10,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -26,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,8 +31,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import pack.daily.DBHelper
-import androidx.compose.runtime.*
-import androidx.compose.ui.res.painterResource
 
 class Searchpage {
 
@@ -56,7 +51,7 @@ class Searchpage {
                 modifier = Modifier.fillMaxWidth() // Expand the width to the full available width
             )
 
-            ListOfRepeatables(appContext)
+            ListOfTasks(appContext, ofRepeatables = true)
 
             Text(
                 text = "Task normali: ",
@@ -64,20 +59,17 @@ class Searchpage {
                 modifier = Modifier.fillMaxWidth() // Expand the width to the full available width
             )
 
-            ListOfTasks(appContext)
+            ListOfTasks(appContext, ofRepeatables = false)
         }
     }
 
     @Composable
-    fun ListOfRepeatables(appCont: Context){
-
-
-    }
-
-    @Composable
-    fun ListOfTasks(appCont: Context){
+    fun ListOfTasks(appCont: Context, ofRepeatables:Boolean = false){
         val dbHelper = DBHelper(appCont)
-        var tasks by remember { mutableStateOf(dbHelper.getTasksData()) }
+        var tasks by remember { mutableStateOf(
+            if(ofRepeatables) dbHelper.getRepeatablesData()
+            else dbHelper.getTasksData()
+        ) }
 
         LazyColumn(
             modifier = Modifier
@@ -94,11 +86,25 @@ class Searchpage {
                         modifier = Modifier.weight(1f)  //This will align the first Text to the left
                     )
 
+                    if(ofRepeatables){
+                        Text(
+                            text = task["dayOfMonth"] ?: "",
+                            modifier = Modifier.weight(1f)  // This will center the second Text
+                        )
 
-                    Text(
-                        text = "${task["day"]}",
-                        modifier = Modifier.weight(1f)  // This will center the second Text
-                    )
+                        val idxToDay = arrayOf("Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica")
+                        val idx = Integer.parseInt(task["dayOfWeek"] ?: "-1")
+                        val dayOfWeekValue = if(idx == -1) "" else idxToDay[idx]
+                        Text(
+                            text = dayOfWeekValue,
+                            modifier = Modifier.weight(1f)  // This will center the second Text
+                        )
+                    }else{
+                        Text(
+                            text = "${task["day"]}",
+                            modifier = Modifier.weight(1f)  // This will center the second Text
+                        )
+                    }
 
                     Spacer(modifier = Modifier.padding(end = 16.dp))
 

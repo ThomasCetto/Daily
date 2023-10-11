@@ -305,12 +305,33 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
                 taskList.add(taskMap)
             } while (cursor.moveToNext())
         }
-
         cursor.close()
         db.close()
         return taskList
     }
 
+    @SuppressLint("Range")
+    fun getRepeatablesData(): List<HashMap<String, String>> {
+        val taskList = ArrayList<HashMap<String, String>>()
+        val db = readableDatabase
+
+        val query = "SELECT * FROM repetitive"
+        val cursor: Cursor = db.rawQuery(query, null)
+
+        if (cursor.moveToFirst()) {
+            do {
+                val taskMap = HashMap<String, String>()
+                taskMap["id"] = cursor.getString(cursor.getColumnIndex("id"))
+                taskMap["name"] = cursor.getString(cursor.getColumnIndex("name"))
+                taskMap["dayOfWeek"] = cursor.getString(cursor.getColumnIndex("dayOfWeek"))
+                taskMap["dayOfMonth"] = cursor.getString(cursor.getColumnIndex("dayOfMonth"))
+                taskList.add(taskMap)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return taskList
+    }
 
 
     fun deleteTask(id: Int){
