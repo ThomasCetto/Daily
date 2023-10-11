@@ -42,24 +42,24 @@ class Searchpage {
             Text(
                 text = "\n TASKS \n",
                 style = TextStyle(fontSize = 24.sp),
-                textAlign = TextAlign.Center, // Center the text horizontally
-                modifier = Modifier.fillMaxWidth() // Expand the width to the full available width
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
-            Text(
-                text = "A ripetizione: ",
-                style = TextStyle(fontSize = 20.sp),
-                modifier = Modifier.fillMaxWidth() // Expand the width to the full available width
-            )
-
-            ListOfTasks(appContext, ofRepeatables = true)
 
             Text(
                 text = "Task normali: ",
                 style = TextStyle(fontSize = 20.sp),
-                modifier = Modifier.fillMaxWidth() // Expand the width to the full available width
+                modifier = Modifier.fillMaxWidth()
+            )
+            ListOfTasks(appContext, ofRepeatables = false)
+
+            Text(
+                text = "A ripetizione: ",
+                style = TextStyle(fontSize = 20.sp),
+                modifier = Modifier.fillMaxWidth()
             )
 
-            ListOfTasks(appContext, ofRepeatables = false)
+            ListOfTasks(appContext, ofRepeatables = true)
         }
     }
 
@@ -87,16 +87,11 @@ class Searchpage {
                     )
 
                     if(ofRepeatables){
-                        Text(
-                            text = task["dayOfMonth"] ?: "",
-                            modifier = Modifier.weight(1f)  // This will center the second Text
-                        )
-
                         val idxToDay = arrayOf("Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica")
                         val idx = Integer.parseInt(task["dayOfWeek"] ?: "-1")
-                        val dayOfWeekValue = if(idx == -1) "" else idxToDay[idx]
+                        val dayValue = if(idx == -1) task["dayOfMonth"] else idxToDay[idx - 1]
                         Text(
-                            text = dayOfWeekValue,
+                            text = dayValue  ?: "",
                             modifier = Modifier.weight(1f)  // This will center the second Text
                         )
                     }else{
@@ -117,7 +112,11 @@ class Searchpage {
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                         onClick = {
                             // Remove the task from the list and database
-                            dbHelper.deleteTask(Integer.parseInt(task["id"] ?: "-1"))
+                            val taskId = Integer.parseInt(task["id"] ?: "-1")
+                            if(ofRepeatables)
+                                dbHelper.deleteRepetitive(taskId)
+                            else
+                                dbHelper.deleteTask(taskId)
                             tasks = tasks.filterNot { it == task }
                         }
                     ) {
@@ -128,12 +127,8 @@ class Searchpage {
                         )
                     }
                 }
-
             }
         }
-
-
-
     }
 
 
